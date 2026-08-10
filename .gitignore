@@ -1,0 +1,20 @@
+# Created at runtime
+easydpi.log
+bin/config.ini
+
+# Resolver list cache downloaded by dnscrypt-proxy
+dns/*.md
+dns/*.minisig
+
+# Design mockups kept locally for reference, too large to publish
+.design-source/
+
+# Portable Git used by push.cmd; a local convenience, not part of the project
+.tools/
+push.cmd
+
+# Build leftovers
+*.pdb
+*.obj
+*.suo
+*.user

@@ -97,6 +97,26 @@ EasyDPI.exe /off     turn protection off and restore DNS
 
 Output goes to `easydpi.log`.
 
+## Windows warns you on first run
+
+EasyDPI is not code signed, so Microsoft Defender SmartScreen shows **"Windows protected your PC — Unknown publisher"** the first time you run it. Click **More info**, then **Run anyway**. It only asks once.
+
+This is not specific to EasyDPI. SmartScreen shows the same warning for every unsigned executable that has not yet built up download reputation, and a signing certificate costs a few hundred dollars a year — hard to justify for a free tool.
+
+If you would rather verify the download than trust it, check the archive before extracting:
+
+```powershell
+Get-FileHash EasyDPI-1.0.0.zip -Algorithm SHA256
+```
+
+It should print:
+
+```
+9E6C13C8B98A15851D069422D4EDB17004C752B3C5D4639EC60CFEA2DD337C8E
+```
+
+The same value is published in the release notes. If it matches, the file is byte for byte what was uploaded here.
+
 ## Limitations
 
 - **It does not hide your IP address or your location.** It changes the shape of your packets, not where they come from. Every site you visit still sees your real address. That requires a VPN, which unavoidably adds latency.

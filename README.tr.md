@@ -97,6 +97,26 @@ EasyDPI.exe /off     korumayı kapatır, DNS'i geri alır
 
 Çıktı `easydpi.log` dosyasına yazılır.
 
+## İlk çalıştırmada Windows uyarısı
+
+EasyDPI kod imzası taşımıyor, bu yüzden Microsoft Defender SmartScreen ilk açılışta **"Windows kişisel bilgisayarınızı korudu — Bilinmeyen yayıncı"** uyarısını gösteriyor. **Ek bilgi** deyip **Yine de çalıştır**'a bas; bir daha sormaz.
+
+Bu EasyDPI'a özel değil. SmartScreen, henüz indirme itibarı oluşmamış her imzasız uygulamada aynı uyarıyı verir; imza sertifikası da yılda birkaç yüz dolar tutuyor ve ücretsiz bir araç için karşılığı yok.
+
+Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
+
+```powershell
+Get-FileHash EasyDPI-1.0.0.zip -Algorithm SHA256
+```
+
+Şunu yazdırmalı:
+
+```
+9E6C13C8B98A15851D069422D4EDB17004C752B3C5D4639EC60CFEA2DD337C8E
+```
+
+Aynı değer sürüm notlarında da yayınlanıyor. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.
+
 ## Sınırlar
 
 - **IP adresini ve konumunu gizlemez.** Paketlerin biçimini değiştirir, nereden geldiklerini değil. Girdiğin her site gerçek adresini görmeye devam eder. Bunun için VPN gerekir, o da kaçınılmaz olarak gecikme ekler.

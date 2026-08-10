@@ -122,6 +122,7 @@ Aynı değer sürüm notlarında da yayınlanıyor. Tutuyorsa dosya, buraya yük
 - **IP adresini ve konumunu gizlemez.** Paketlerin biçimini değiştirir, nereden geldiklerini değil. Girdiğin her site gerçek adresini görmeye devam eder. Bunun için VPN gerekir, o da kaçınılmaz olarak gecikme ekler.
 - **Sadece Windows.** Bir Windows paket sürücüsüne dayanır.
 - **Bazı operatörler bu yöntemle aşılamaz.** Hiçbir aday çalışmazsa EasyDPI bunu açıkça söyler, çalışıyormuş gibi yapmaz.
+- **Ağa çıkan her çağrı ve sistemde yapılan her değişiklik** [şeffaflık raporunda](TRANSPARENCY.tr.md) belgelendi; gönderilen her ikili dosyanın sağlama toplamı dahil.
 - **Ölçülen performans etkisi ihmal edilebilir** — indirme hızında yaklaşık %0.2, yani ölçüm gürültüsü seviyesinde. Ad çözümleme genelde biraz *hızlanır*, çünkü yerel çözümleyici önbellek tutar.
 
 ## Klasör yapısı

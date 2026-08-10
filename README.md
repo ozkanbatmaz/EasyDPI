@@ -122,6 +122,7 @@ The same value is published in the release notes. If it matches, the file is byt
 - **It does not hide your IP address or your location.** It changes the shape of your packets, not where they come from. Every site you visit still sees your real address. That requires a VPN, which unavoidably adds latency.
 - **Windows only.** It depends on a Windows packet driver.
 - **Some providers cannot be bypassed this way.** If no candidate works, EasyDPI says so plainly rather than pretending otherwise.
+- **Every network call and system change is documented** in the [transparency report](TRANSPARENCY.md), including checksums for every shipped binary.
 - **Measured performance cost is negligible** — around 0.2% on download throughput, within measurement noise. Name resolution usually gets slightly *faster*, because the local resolver caches.
 
 ## Layout

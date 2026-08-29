@@ -31,7 +31,16 @@ göstermeye devam eder.
 
 - `cloudflare-dns.com` ve `dns.google` adreslerine şifreli DNS sorguları —
   sağlayıcının verdiği cevapla karşılaştırmak için güvenilir bir referans olarak
-- Test alan adlarına TLS el sıkışması — hangilerinin kesildiğini görmek için
+- Test listesindeki her adrese HTTPS üzerinden bir `HEAD /` isteği — hangilerinin
+  kesildiğini görmek için. Liste [`src/ProbeList.cs`](src/ProbeList.cs) içinde,
+  tamamı, düz metin hâlinde: yaklaşık seksen servis adresi. İsteklerle birlikte
+  hiçbir şey gönderilmez — çerez yok, tanımlayıcı yok, referrer yok — ve cevabın
+  gövdesi hiç okunmaz. Kapalı çıkan adresler, her aday ayar çalışırken yeniden
+  istenir; aramayı tahmin değil ölçüm yapan şey budur.
+- `speed.cloudflare.com` adresinden iki megabaytlık indirme; son tura kalan üç
+  ayarın her biri için iki kez, hızlarını karşılaştırmak için. EasyDPI'ın ürettiği,
+  test isteği olmayan tek trafik budur ve ayar bulucunun yalnızca o son adımında
+  olur.
 
 Listenin tamamı bu. Telemetri yok, analitik yok, güncelleme kontrolü yok, çökme
 raporu yok, tanımlayıcı yok. Kaynak [`src/`](src/) altında; ağa çıkan her çağrı
@@ -73,7 +82,7 @@ sağlama toplamlarını karşılaştırdım:
 | `bin\WinDivert.dll` | GoodbyeDPI arşivinin içinde | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | evet |
 | `bin\WinDivert64.sys` | GoodbyeDPI arşivinin içinde | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | evet |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | evet |
-| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `D95408D8D3A26EE3C8F98591835782EC9CDD414D7D5EFC215F1D154C92402CA9` | — |
+| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `C9BDC6DBB1A276C430FA326162AA9DD186B16DB99BFE3BACD85FF8A1E8ADD8CD` | — |
 
 Doğrudan upstream arşivlerinden başlamak istersen:
 

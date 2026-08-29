@@ -141,7 +141,6 @@ namespace EasyDPI
 
             en["tune.start"] = "Network test started.";
             en["tune.step1"] = "1) DNS check";
-            en["tune.skipped"] = "skipped";
             en["tune.dnsNoAnswer"] = "tampered (no answer)";
             en["tune.dnsFakeAddress"] = "tampered (fake address)";
             en["tune.dnsClean"] = "clean";
@@ -150,12 +149,18 @@ namespace EasyDPI
             en["tune.dnsCleanResult"] = "   -> DNS is clean; leaving it alone.";
             en["tune.warnDnsStart"] = "   Warning: the DNS service did not start.";
             en["tune.warnDnsMissing"] = "   Warning: dnscrypt-proxy was not found.";
-            en["tune.step2"] = "2) Blocking check";
-            en["tune.reachable"] = "open";
-            en["tune.blocked"] = "blocked";
+            en["tune.step2"] = "2) Blocking scan ({0} addresses, {1} services)";
+            en["tune.allOpen"] = "all open";
+            en["tune.closedList"] = "closed: {0}";
             en["tune.noBlocking"] = "   -> No blocking detected on this network.";
             en["tune.addYourOwn"] = "   If a site you need is still blocked, add it to probeDomains in bin/config.ini.";
-            en["tune.step3"] = "3) Searching for settings ({0} candidates)";
+            en["tune.step3"] = "3) Screening every setting ({0} candidates)";
+            en["tune.step4"] = "4) Measuring the best {0} for speed";
+            en["tune.speedOnly"] = "   -> Still choosing the fastest setting for this connection.";
+            en["tune.colSetting"] = "setting";
+            en["tune.colOpen"] = "opened";
+            en["tune.colLatency"] = "response";
+            en["tune.colSpeed"] = "download";
             en["tune.candidateFailed"] = "could not start";
             en["tune.sitesBroken"] = "  ({0} normal sites broken)";
             en["tune.nothingWorked"] = "No working configuration was found. This network may require a VPN.";
@@ -163,6 +168,11 @@ namespace EasyDPI
             en["tune.encryptedDnsVerdict"] = "Encrypted DNS: {0}";
             en["tune.required"] = "required";
             en["tune.notRequired"] = "not required";
+            en["tune.bestSpeed"] = "Response {0}, download {1}";
+            en["tune.stillBlocked"] = "Still unreachable with these settings: {0}";
+            en["tune.stillBlockedHint"] = "   These may be blocked at the provider itself, which needs a VPN rather than different settings.";
+            en["tune.elapsed"] = "Measured in {0} min {1} s.";
+            en["probe.yours"] = "Yours";
 
             en["menu.showIntro"] = "Show the introduction again";
             en["menu.openConfig"] = "Open the configuration folder";
@@ -246,7 +256,6 @@ namespace EasyDPI
 
             tr["tune.start"] = "Ağ testi başladı.";
             tr["tune.step1"] = "1) DNS kontrolü";
-            tr["tune.skipped"] = "atlandı";
             tr["tune.dnsNoAnswer"] = "müdahaleli (cevap yok)";
             tr["tune.dnsFakeAddress"] = "müdahaleli (sahte adres)";
             tr["tune.dnsClean"] = "temiz";
@@ -255,12 +264,18 @@ namespace EasyDPI
             tr["tune.dnsCleanResult"] = "   -> DNS temiz; dokunulmayacak.";
             tr["tune.warnDnsStart"] = "   Uyarı: DNS servisi başlatılamadı.";
             tr["tune.warnDnsMissing"] = "   Uyarı: dnscrypt-proxy bulunamadı.";
-            tr["tune.step2"] = "2) Engel kontrolü";
-            tr["tune.reachable"] = "açık";
-            tr["tune.blocked"] = "engelli";
+            tr["tune.step2"] = "2) Engel taraması ({0} adres, {1} servis)";
+            tr["tune.allOpen"] = "hepsi açık";
+            tr["tune.closedList"] = "kapalı: {0}";
             tr["tune.noBlocking"] = "   -> Bu ağda engelleme tespit edilmedi.";
             tr["tune.addYourOwn"] = "   İhtiyacın olan site hâlâ engelliyse bin/config.ini içindeki probeDomains satırına ekle.";
-            tr["tune.step3"] = "3) Ayar aranıyor ({0} aday)";
+            tr["tune.step3"] = "3) Tüm ayarlar eleniyor ({0} aday)";
+            tr["tune.step4"] = "4) En iyi {0} aday hız için ölçülüyor";
+            tr["tune.speedOnly"] = "   -> Yine de bu bağlantı için en hızlı ayar seçilecek.";
+            tr["tune.colSetting"] = "ayar";
+            tr["tune.colOpen"] = "açılan";
+            tr["tune.colLatency"] = "yanıt";
+            tr["tune.colSpeed"] = "indirme";
             tr["tune.candidateFailed"] = "başlatılamadı";
             tr["tune.sitesBroken"] = "  ({0} normal site bozuldu)";
             tr["tune.nothingWorked"] = "Çalışan bir ayar bulunamadı. Bu ağ için VPN gerekebilir.";
@@ -268,6 +283,11 @@ namespace EasyDPI
             tr["tune.encryptedDnsVerdict"] = "Şifreli DNS: {0}";
             tr["tune.required"] = "gerekli";
             tr["tune.notRequired"] = "gerekmiyor";
+            tr["tune.bestSpeed"] = "Yanıt {0}, indirme {1}";
+            tr["tune.stillBlocked"] = "Bu ayarla hâlâ ulaşılamıyor: {0}";
+            tr["tune.stillBlockedHint"] = "   Bunlar doğrudan sağlayıcı tarafından kapatılmış olabilir; farklı ayar değil VPN gerekir.";
+            tr["tune.elapsed"] = "Ölçüm süresi: {0} dk {1} sn.";
+            tr["probe.yours"] = "Senin listen";
 
             tr["menu.showIntro"] = "Tanıtımı tekrar göster";
             tr["menu.openConfig"] = "Yapılandırma klasörünü aç";
@@ -351,7 +371,6 @@ namespace EasyDPI
 
             ru["tune.start"] = "Проверка сети началась.";
             ru["tune.step1"] = "1) Проверка DNS";
-            ru["tune.skipped"] = "пропущено";
             ru["tune.dnsNoAnswer"] = "подменяется (нет ответа)";
             ru["tune.dnsFakeAddress"] = "подменяется (поддельный адрес)";
             ru["tune.dnsClean"] = "чисто";
@@ -360,12 +379,18 @@ namespace EasyDPI
             ru["tune.dnsCleanResult"] = "   -> DNS чистый; не трогаем.";
             ru["tune.warnDnsStart"] = "   Внимание: служба DNS не запустилась.";
             ru["tune.warnDnsMissing"] = "   Внимание: dnscrypt-proxy не найден.";
-            ru["tune.step2"] = "2) Проверка блокировок";
-            ru["tune.reachable"] = "доступен";
-            ru["tune.blocked"] = "заблокирован";
+            ru["tune.step2"] = "2) Проверка блокировок ({0} адресов, сервисов: {1})";
+            ru["tune.allOpen"] = "все доступны";
+            ru["tune.closedList"] = "закрыто: {0}";
             ru["tune.noBlocking"] = "   -> Блокировок в этой сети не обнаружено.";
             ru["tune.addYourOwn"] = "   Если нужный сайт всё ещё заблокирован, добавьте его в probeDomains в bin/config.ini.";
-            ru["tune.step3"] = "3) Подбор настроек ({0} вариантов)";
+            ru["tune.step3"] = "3) Отбор настроек ({0} вариантов)";
+            ru["tune.step4"] = "4) Замер скорости: лучшие {0}";
+            ru["tune.speedOnly"] = "   -> Всё равно выберем самую быструю настройку.";
+            ru["tune.colSetting"] = "настройка";
+            ru["tune.colOpen"] = "открыто";
+            ru["tune.colLatency"] = "отклик";
+            ru["tune.colSpeed"] = "загрузка";
             ru["tune.candidateFailed"] = "не запустилось";
             ru["tune.sitesBroken"] = "  (сломано обычных сайтов: {0})";
             ru["tune.nothingWorked"] = "Рабочая конфигурация не найдена. Для этой сети может потребоваться VPN.";
@@ -373,6 +398,11 @@ namespace EasyDPI
             ru["tune.encryptedDnsVerdict"] = "Шифрованный DNS: {0}";
             ru["tune.required"] = "требуется";
             ru["tune.notRequired"] = "не требуется";
+            ru["tune.bestSpeed"] = "Отклик {0}, загрузка {1}";
+            ru["tune.stillBlocked"] = "С этими настройками всё ещё недоступно: {0}";
+            ru["tune.stillBlockedHint"] = "   Возможно, это блокировка на стороне провайдера — тут нужен VPN, а не другие настройки.";
+            ru["tune.elapsed"] = "Замер занял {0} мин {1} с.";
+            ru["probe.yours"] = "Ваши";
 
             ru["menu.showIntro"] = "Показать введение снова";
             ru["menu.openConfig"] = "Открыть папку конфигурации";

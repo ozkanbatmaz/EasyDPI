@@ -30,7 +30,16 @@ are no longer there.
 
 - DNS-over-HTTPS queries to `cloudflare-dns.com` and `dns.google`, used as a
   trustworthy answer to compare your provider's answers against
-- TLS handshakes to the probe domains, to see which ones are being cut off
+- One `HEAD /` request over HTTPS to each address in the probe list, to see which
+  ones are being cut off. The list is in [`src/ProbeList.cs`](src/ProbeList.cs),
+  in full, in plain text — around eighty service endpoints. Nothing is sent with
+  the requests: no cookies, no identifiers, no referrer, and the response body is
+  never read. Blocked addresses are then re-requested while each candidate setting
+  is running, which is what makes the search a measurement rather than a guess.
+- A download of two megabytes from `speed.cloudflare.com`, twice for each of the
+  three settings that reach the final round, to compare their throughput. This is
+  the only traffic EasyDPI generates that is not a probe, and it happens nowhere
+  except in that last step of the tuner.
 
 That is the entire list. No telemetry, no analytics, no update check, no
 crash reporting, no identifiers. The source is in [`src/`](src/) and the network
@@ -70,7 +79,7 @@ and comparing hashes:
 | `bin\WinDivert.dll` | bundled in the GoodbyeDPI archive | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | yes |
 | `bin\WinDivert64.sys` | bundled in the GoodbyeDPI archive | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | yes |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | yes |
-| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `D95408D8D3A26EE3C8F98591835782EC9CDD414D7D5EFC215F1D154C92402CA9` | — |
+| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `C9BDC6DBB1A276C430FA326162AA9DD186B16DB99BFE3BACD85FF8A1E8ADD8CD` | — |
 
 Upstream archive checksums, if you want to start from those:
 

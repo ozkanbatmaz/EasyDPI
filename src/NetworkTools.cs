@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Authentication;
 using System.Text.RegularExpressions;
 
 namespace EasyDPI
@@ -16,6 +15,30 @@ namespace EasyDPI
     /// </summary>
     static class NetworkTools
     {
+        /// <summary>
+        /// Probes identify as a browser. Some providers hand a plain "no user agent"
+        /// request a different answer than a browser gets, which would make the
+        /// measurement describe a request nobody actually makes.
+        /// </summary>
+        const string BrowserUserAgent =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
+
+        static NetworkTools()
+        {
+            try
+            {
+                // The framework default still offers TLS 1.0 first, which a growing number
+                // of sites refuse outright — indistinguishable from blocking in a measurement.
+                ServicePointManager.SecurityProtocol =
+                    SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                ServicePointManager.Expect100Continue = false;
+                // Probes run in parallel; the default of two connections per host would
+                // serialise them behind each other.
+                ServicePointManager.DefaultConnectionLimit = 64;
+            }
+            catch { }
+        }
+
         // ---------------------------------------------------------------
         // Adapter
         // ---------------------------------------------------------------
@@ -104,32 +127,106 @@ namespace EasyDPI
         // ---------------------------------------------------------------
 
         /// <summary>
-        /// Connects to an address and completes a TLS handshake using the given host name
-        /// as SNI. Inspection systems that watch for SNI inject a reset here, so a failed
-        /// handshake against a known-good address is a reliable signal of blocking.
+        /// Fetches the head of a page over HTTPS and reports whether the request
+        /// completed, along with how long it took.
         ///
-        /// The TLS versions must be listed explicitly. AuthenticateAsClient(host) negotiates
-        /// with an ancient default that ServicePointManager.SecurityProtocol does not affect,
-        /// and servers requiring TLS 1.2 then fail in a way that looks exactly like blocking.
+        /// This is a stricter test than a bare TLS handshake, and measurably so: on the
+        /// network this was written against, several hosts (a Roblox CDN edge, Bing)
+        /// failed a raw handshake from a hand-rolled SslStream while a normal HTTPS
+        /// request to the same name succeeded every time. A tuner scoring on handshakes
+        /// would have called those sites blocked and chased a setting to "fix" them.
+        /// Asking for a page the way an application does removes that whole class of
+        /// false positives, and answers the question that actually matters: can a
+        /// program on this machine talk to this service?
+        ///
+        /// An HTTP error status is success. 403 and 404 come from the server, so the
+        /// connection plainly got there; only a transport failure — refused, reset,
+        /// timed out, cut off mid-handshake — counts as blocked. Certificate validation
+        /// is deliberately left on: an interceptor presenting its own certificate is
+        /// not a working connection and should not be scored as one.
         /// </summary>
-        public static bool CanCompleteTlsHandshake(string ipAddress, string hostName, int timeoutMs)
+        public static bool ProbeHttps(string hostName, int timeoutMs, out int elapsedMs)
         {
-            TcpClient client = new TcpClient();
+            Stopwatch watch = Stopwatch.StartNew();
+            WebResponse response = null;
+
             try
             {
-                IAsyncResult connection = client.BeginConnect(ipAddress, 443, null, null);
-                if (!connection.AsyncWaitHandle.WaitOne(timeoutMs)) return false;
-                client.EndConnect(connection);
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://" + hostName + "/");
+                request.Method = "HEAD";
+                request.Timeout = timeoutMs;
+                request.ReadWriteTimeout = timeoutMs;
+                request.AllowAutoRedirect = false;
+                request.KeepAlive = false;
+                // Without this Windows looks for a proxy configuration script first,
+                // which can add seconds to every single probe.
+                request.Proxy = null;
+                request.UserAgent = BrowserUserAgent;
 
-                using (SslStream secureStream = new SslStream(client.GetStream(), false, delegate { return true; }))
-                {
-                    secureStream.AuthenticateAsClient(hostName, null,
-                        SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false);
-                    return secureStream.IsAuthenticated;
-                }
+                response = request.GetResponse();
+                watch.Stop();
+                elapsedMs = (int)watch.ElapsedMilliseconds;
+                return true;
             }
-            catch { return false; }
-            finally { try { client.Close(); } catch { } }
+            catch (WebException failure)
+            {
+                watch.Stop();
+                elapsedMs = (int)watch.ElapsedMilliseconds;
+                if (failure.Response != null) { try { failure.Response.Close(); } catch { } }
+                return failure.Response != null;
+            }
+            catch
+            {
+                watch.Stop();
+                elapsedMs = (int)watch.ElapsedMilliseconds;
+                return false;
+            }
+            finally { if (response != null) { try { response.Close(); } catch { } } }
+        }
+
+        /// <summary>
+        /// Downloads a fixed block of data and reports the rate in kilobits per second,
+        /// or zero if the measurement could not be taken.
+        ///
+        /// Latency alone does not separate the candidate settings. Splitting packets and
+        /// shrinking payloads costs throughput rather than round-trip time, so two
+        /// settings that both connect quickly can differ by a wide margin once real data
+        /// starts moving. Cloudflare's speed endpoint is used because it serves an exact
+        /// requested byte count, which makes the number comparable between runs.
+        /// </summary>
+        public static int MeasureDownloadKbps(int byteCount, int timeoutMs)
+        {
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(
+                    "https://speed.cloudflare.com/__down?bytes=" + byteCount);
+                request.Timeout = timeoutMs;
+                request.ReadWriteTimeout = timeoutMs;
+                request.KeepAlive = false;
+                request.Proxy = null;
+                request.UserAgent = BrowserUserAgent;
+
+                Stopwatch watch = Stopwatch.StartNew();
+                long received = 0;
+
+                using (WebResponse response = request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                {
+                    byte[] buffer = new byte[16384];
+                    int read;
+                    while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        received += read;
+                        if (watch.ElapsedMilliseconds > timeoutMs) break;
+                    }
+                }
+
+                watch.Stop();
+                long elapsed = Math.Max(1, watch.ElapsedMilliseconds);
+                if (received < byteCount / 4) return 0;
+                return (int)((received * 8) / elapsed);
+            }
+            catch { return 0; }
         }
 
         // ---------------------------------------------------------------

@@ -49,31 +49,44 @@ EasyDPI measures your actual connection instead:
 
 ```
 1) DNS check
-   discord.com         tampered (fake address)
-   roblox.com          tampered (fake address)
-   x.com               tampered (fake address)
-   medium.com          clean
-   -> DNS is being tampered with; enabling encrypted DNS.
+   setup.roblox.com                clean
+   discord.com                     clean
+   x.com                           clean
+   -> DNS is clean; leaving it alone.
 
-2) Blocking check
-   discord.com         blocked
-   roblox.com          blocked
-   x.com               open
-   medium.com          open
+2) Blocking scan (79 addresses, 9 services)
+   Roblox client   11/13     closed: setup.roblox.com, clientsettingscdn.roblox.com
+   Roblox site     20/20     all open
+   Roblox CDN      7/7       all open
+   Discord         5/5       all open
+   Social          8/9       closed: web.telegram.org
+   Control         8/8       all open
 
-3) Searching for settings (13 candidates)
-   -9 --frag-by-sni      0/2
-   -9                    0/2
-   -5 -q --frag-by-sni   2/2
+3) Screening every setting (21 candidates)
+   -9 --frag-by-sni                                      1/3
+   -5 -q --frag-by-sni                                   1/3
+   -f 2 -e 2 --set-ttl 3 --reverse-frag --max-payload    3/3
+   -f 2 -e 2 --native-frag --frag-by-sni -q              3/3
+   -4                                                    0/3  (2 normal sites broken)
 
-Best settings: -5 -q --frag-by-sni
+4) Measuring the best 3 for speed
+   setting                                             opened  response  download
+   -f 2 -e 2 --set-ttl 3 --reverse-frag --max-payload   3/3     181 ms    28.4 Mbps
+   -f 2 -e 2 --native-frag --frag-by-sni -q             3/3     174 ms    19.2 Mbps
+
+Best settings: -f 2 -e 2 --set-ttl 3 --reverse-frag --max-payload
+Response 181 ms, download 28.4 Mbps
 ```
 
 How it decides:
 
-- **DNS tampering** is detected by resolving each probe domain twice — once through the system resolver, once over encrypted DNS — and comparing the answers.
-- **Blocking** is detected by opening a real TLS connection to the correct address. A connection that is reset mid-handshake is being interfered with.
-- **Candidates** are tried in order. Each one is scored on how many blocked sites it opens *and* whether it breaks sites that were working; a configuration that damages normal browsing scores worse than doing nothing. The search stops at the first clean success.
+- **DNS tampering** is detected by resolving names twice — once through the system resolver, once over encrypted DNS — and comparing the answers. The sample is taken across services, not from the top of one list, because a provider may redirect one service and leave the rest alone.
+- **Blocking** is measured per endpoint, over a real HTTPS request rather than a bare TLS handshake. Providers block names, so "roblox.com opens" says nothing about `setup.roblox.com` or `clientsettingscdn.roblox.com` — and those two are what leave the installer warning about missing flag settings while the website looks fine. An HTTP error such as 403 counts as reachable: the answer came from the server. Only a transport failure counts as blocked.
+- **Every candidate is screened**, not just the ones before the first success. Several settings usually clear the same blocks and they are not equally good.
+- **Speed decides between equals.** The leaders are re-measured with repeated requests and a download, and ranked on response time and throughput — but only after correctness: a fast setting that leaves a service unreachable has not solved anything, and breaking a site that worked is weighted more heavily than opening one more that did not.
+- **What is still blocked is printed.** If the best setting cannot open something, the report names it instead of ending on "best settings found".
+
+The probe list is built from the endpoints applications actually call — Roblox's own network allowlist plus the hosts its client and website use at runtime, Discord's, and sites from the Citizen Lab test lists — and every address in it was verified to resolve and answer before being included.
 
 The result is written to `bin/config.ini`. Run it again whenever you change networks.
 
@@ -106,16 +119,12 @@ This is not specific to EasyDPI. SmartScreen shows the same warning for every un
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.0.0.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.1.0.zip -Algorithm SHA256
 ```
 
-It should print:
+and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.
 
-```
-9E6C13C8B98A15851D069422D4EDB17004C752B3C5D4639EC60CFEA2DD337C8E
-```
-
-The same value is published in the release notes. If it matches, the file is byte for byte what was uploaded here.
+The checksum lives in the release notes rather than in this file, because this file is inside the archive it would be describing.
 
 ## Limitations
 

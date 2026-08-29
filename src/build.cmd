@@ -58,6 +58,7 @@ echo.
     ArtworkPanel.cs ^
     ServiceManager.cs ^
     NetworkTools.cs ^
+    ProbeList.cs ^
     BypassController.cs ^
     AutoTuner.cs ^
     MainWindow.cs ^

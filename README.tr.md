@@ -49,31 +49,44 @@ EasyDPI bunun yerine senin bağlantını ölçer:
 
 ```
 1) DNS kontrolü
-   discord.com         müdahaleli (sahte adres)
-   roblox.com          müdahaleli (sahte adres)
-   x.com               müdahaleli (sahte adres)
-   medium.com          temiz
-   -> DNS'e müdahale ediliyor; şifreli DNS açılıyor.
+   setup.roblox.com                temiz
+   discord.com                     temiz
+   x.com                           temiz
+   -> DNS temiz; dokunulmayacak.
 
-2) Engel kontrolü
-   discord.com         engelli
-   roblox.com          engelli
-   x.com               açık
-   medium.com          açık
+2) Engel taraması (79 adres, 9 servis)
+   Roblox client   11/13     kapalı: setup.roblox.com, clientsettingscdn.roblox.com
+   Roblox site     20/20     hepsi açık
+   Roblox CDN      7/7       hepsi açık
+   Discord         5/5       hepsi açık
+   Social          8/9       kapalı: web.telegram.org
+   Control         8/8       hepsi açık
 
-3) Ayar aranıyor (13 aday)
-   -9 --frag-by-sni      0/2
-   -9                    0/2
-   -5 -q --frag-by-sni   2/2
+3) Tüm ayarlar eleniyor (21 aday)
+   -9 --frag-by-sni                                      1/3
+   -5 -q --frag-by-sni                                   1/3
+   -f 2 -e 2 --set-ttl 3 --reverse-frag --max-payload    3/3
+   -f 2 -e 2 --native-frag --frag-by-sni -q              3/3
+   -4                                                    0/3  (2 normal site bozuldu)
 
-En iyi ayar: -5 -q --frag-by-sni
+4) En iyi 3 aday hız için ölçülüyor
+   ayar                                                açılan  yanıt     indirme
+   -f 2 -e 2 --set-ttl 3 --reverse-frag --max-payload   3/3     181 ms    28.4 Mbps
+   -f 2 -e 2 --native-frag --frag-by-sni -q             3/3     174 ms    19.2 Mbps
+
+En iyi ayar: -f 2 -e 2 --set-ttl 3 --reverse-frag --max-payload
+Yanıt 181 ms, indirme 28.4 Mbps
 ```
 
 Nasıl karar veriyor:
 
-- **DNS müdahalesi**, her test alan adını iki kez çözerek anlaşılır — biri sistem çözümleyicisiyle, biri şifreli DNS ile — ve cevaplar karşılaştırılır.
-- **Engelleme**, doğru adrese gerçek bir TLS bağlantısı açılarak ölçülür. El sıkışma ortasında kesilen bir bağlantıya müdahale ediliyor demektir.
-- **Adaylar** sırayla denenir. Her aday hem kaç engelli siteyi açtığına *hem de* çalışan siteleri bozup bozmadığına göre puanlanır; normal gezinmeyi bozan bir ayar, hiçbir şey yapmamaktan daha kötü puan alır. Arama ilk temiz başarıda durur.
+- **DNS müdahalesi**, adlar iki kez çözülerek anlaşılır — biri sistem çözümleyicisiyle, biri şifreli DNS ile — ve cevaplar karşılaştırılır. Örneklem tek bir listenin başından değil, servislere yayılarak alınır; çünkü bir sağlayıcı yalnız bir servisi yönlendirip gerisine dokunmayabilir.
+- **Engelleme**, uç nokta bazında ve ham TLS el sıkışması yerine gerçek bir HTTPS isteğiyle ölçülür. Engel alan adına konur: "roblox.com açılıyor" cümlesi `setup.roblox.com` ya da `clientsettingscdn.roblox.com` hakkında hiçbir şey söylemez — kurulumun "bayrak ayarları alınamadı" uyarısını verirken sitenin sapasağlam görünmesinin sebebi tam olarak bu ikisidir. 403 gibi bir HTTP hatası "ulaşıldı" sayılır, çünkü cevabı sunucu vermiştir; yalnız taşıma katmanı hataları engel sayılır.
+- **Her aday denenir**, ilk başarıya kadar olanlar değil. Genelde birden çok ayar aynı engelleri açar ve hepsi eşit değildir.
+- **Hız, eşitleri ayırır.** Öne çıkan adaylar tekrarlı isteklerle ve bir indirme ile yeniden ölçülür, yanıt süresi ve hıza göre sıralanır — ama önce doğruluk gelir: bir servisi kapalı bırakan hızlı ayar hiçbir şey çözmemiştir ve çalışan bir siteyi bozmak, kapalı bir siteyi daha açmaktan daha ağır cezalandırılır.
+- **Hâlâ kapalı olan yazılır.** En iyi ayar bir şeyi açamıyorsa rapor onu adıyla söyler, "en iyi ayar bulundu" deyip kapatmaz.
+
+Test listesi uygulamaların gerçekten çağırdığı uç noktalardan kuruldu — Roblox'un kendi ağ izin listesi, artı istemcinin ve sitenin çalışırken kullandığı adresler, Discord'unkiler ve Citizen Lab test listelerinden siteler — ve listedeki her adres, eklenmeden önce çözülüp cevap verdiği doğrulandı.
 
 Sonuç `bin/config.ini` dosyasına yazılır. Ağ değiştirdiğinde tekrar çalıştırman yeterli.
 
@@ -106,16 +119,12 @@ Bu EasyDPI'a özel değil. SmartScreen, henüz indirme itibarı oluşmamış her
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.0.0.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.1.0.zip -Algorithm SHA256
 ```
 
-Şunu yazdırmalı:
+ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.
 
-```
-9E6C13C8B98A15851D069422D4EDB17004C752B3C5D4639EC60CFEA2DD337C8E
-```
-
-Aynı değer sürüm notlarında da yayınlanıyor. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.
+Sağlama toplamı bu dosyada değil sürüm notlarında duruyor; çünkü bu dosya, tarif edeceği arşivin içinde.
 
 ## Sınırlar
 

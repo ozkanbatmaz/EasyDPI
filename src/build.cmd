@@ -59,6 +59,7 @@ echo.
     TabBar.cs ^
     FlagRenderer.cs ^
     ArtworkPanel.cs ^
+    AdvancedPane.cs ^
     ServiceManager.cs ^
     NetworkTools.cs ^
     ProbeList.cs ^

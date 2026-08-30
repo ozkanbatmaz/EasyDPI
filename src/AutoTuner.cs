@@ -546,8 +546,19 @@ namespace EasyDPI
             // Written whether or not targeted scope is on: switching it on later should not
             // require running the whole measurement again just to produce this file.
             List<string> blockedHosts = new List<string>();
-            foreach (ProbeHost probe in blocked) blockedHosts.Add(probe.Host);
+            List<string> blockedServices = new List<string>();
+
+            foreach (ProbeHost probe in blocked)
+            {
+                blockedHosts.Add(probe.Host);
+                if (!blockedServices.Contains(probe.Group)) blockedServices.Add(probe.Group);
+            }
+
             Settings.SaveBlacklist(blockedHosts);
+
+            // Recorded so the Advanced tab can arrive with the blocked services already
+            // ticked rather than empty.
+            Settings.BlockedServices = blockedServices;
 
             if (Settings.TargetedScope)
                 report(Strings.Get("tune.targetedScope", blockedHosts.Count));

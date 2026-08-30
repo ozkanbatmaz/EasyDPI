@@ -94,11 +94,17 @@ Sonuç `bin/config.ini` dosyasına yazılır. Ağ değiştirdiğinde tekrar çal
 
 ## Kapsam
 
-EasyDPI varsayılan olarak makinenin kurduğu her bağlantıya müdahale eder. Dişli menüsünde alternatifi var: **Yalnız engelli adreslere uygula**. Bu, motoru son ölçümde gerçekten engelli bulunan adreslerle sınırlar. Adresler `bin/blacklist.txt` dosyasına yazılır, ayarın kendisi `bin/config.ini` içinde `scope=targeted` satırıdır.
+Atlatmanın nereye uygulanacağına **Gelişmiş** sekmesi karar veriyor. İki modu var ve varsayılan otomatik; çünkü neredeyse herkes için doğru cevap o.
 
-Dar olan otomatik olarak daha iyi değil, takası bilmekte fayda var. Ölçüm yapıldığında listede olmayan engelli bir şey — sonradan girdiğin bir site, servisin taşındığı yeni bir uç nokta — dokunulmadan bırakılır ve bir sonraki ölçüme kadar engelli kalır. Darlığın kazandırdığı şey ise şu: başka hiçbir şeye dokunulmaz. VPN, oyunlar, bankacılık uygulaması ve hiç engellenmemiş her site, EasyDPI kapalıymış gibi geçer.
+**Otomatik**, makinenin kurduğu her bağlantıyı kapsar. Karar vermek gerekmez, hiçbir şey kaçmaz.
 
-Bunu iki servis için istiyor ve tüm bilgisayara uygulanmasını istemiyorsan, aradığın ayar bu.
+**Kendim seçeyim**, motoru işaretlediğin servislerle sınırlar. Makinedeki diğer her şey — VPN, oyunlar, bankacılık uygulaması, hiç engellenmemiş her site — EasyDPI kapalıymış gibi geçer. Son ölçümde engelli bulunan servisler zaten işaretli gelir; uygulama senin bağlantında hangilerinin engelli olduğunu az önce çıkardı, bunu sana yeniden buldurmanın anlamı yok. Altına kendi adreslerini de ekleyebilirsin; yazdığının alt alan adları da kapsama girer.
+
+Seçim `bin/config.ini` içinde `mode=` olarak, oluşan adres listesi de `bin/blacklist.txt` dosyasında saklanır.
+
+Dar olan otomatik olarak daha iyi değil. Uyguladığın anda kapsamda olmayan engelli bir şey — sonradan girdiğin bir site, servisin taşındığı yeni bir uç nokta — dokunulmadan bırakılır ve sen seçimi genişletene ya da yeniden ölçüm yapana kadar engelli kalır. Bu ayar, EasyDPI'ı iki servis için isteyen ve tüm bilgisayarına uygulanmasını istemeyen kişi için.
+
+**Windows uygulaması listesi sunamıyor**, ki insanların ilk istediği şey bu. Motor, trafiğin içinden okuduğu alan adlarına göre filtreliyor; paketin hangi programdan geldiğini bilmesinin bir yolu yok. Servis seçmek bunun dürüst karşılığı: Discord'u işaretlemek, hangi program konuşuyorsa konuşsun Discord'un konuştuğu adresleri kapsar.
 
 ## Günlük sekmesi
 
@@ -157,7 +163,7 @@ Antivirüs bazen bir adım öteye gidip dosyayı tamamen engelleyebiliyor: "vir�
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.4.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.3.0.zip -Algorithm SHA256
 ```
 
 ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.

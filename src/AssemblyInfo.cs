@@ -23,7 +23,7 @@ using System.Runtime.InteropServices;
 // The single source of the version number: AppInfo reads it back from here, so the
 // number shown in a diagnostic report and the number in the file's properties cannot
 // drift apart.
-[assembly: AssemblyVersion("1.2.4.0")]
-[assembly: AssemblyFileVersion("1.2.4.0")]
+[assembly: AssemblyVersion("1.3.0.0")]
+[assembly: AssemblyFileVersion("1.3.0.0")]
 
 [assembly: ComVisible(false)]

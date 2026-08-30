@@ -87,6 +87,26 @@ namespace EasyDPI
         /// </summary>
         public static bool TargetedScope = false;
 
+        /// <summary>
+        /// True when the person has taken the wheel: the bypass covers what they chose in
+        /// the Advanced tab rather than everything, or whatever the measurement decided.
+        /// </summary>
+        public static bool AdvancedMode = false;
+
+        /// <summary>Service groups the bypass is applied to in advanced mode.</summary>
+        public static List<string> SelectedServices = new List<string>();
+
+        /// <summary>Addresses the person added themselves, on top of the services.</summary>
+        public static List<string> CustomTargets = new List<string>();
+
+        /// <summary>
+        /// Groups the last measurement found something blocked in. Kept so the advanced
+        /// list can arrive with the right boxes already ticked instead of empty: the
+        /// application already knows which services are blocked here, and making somebody
+        /// rediscover that by hand would be a strange thing to ask.
+        /// </summary>
+        public static List<string> BlockedServices = new List<string>();
+
         /// <summary>UI language: a two-letter code, or "auto" to follow the operating system.</summary>
         public static string Language = "auto";
 
@@ -121,7 +141,7 @@ namespace EasyDPI
         /// </summary>
         public static string BlacklistArgument(bool escapedForServicePath)
         {
-            if (!TargetedScope) return "";
+            if (!TargetedScope && !AdvancedMode) return "";
             if (!File.Exists(AppPaths.BlacklistFile)) return "";
 
             string quote = escapedForServicePath ? "\\\"" : "\"";
@@ -142,6 +162,25 @@ namespace EasyDPI
                 File.WriteAllText(AppPaths.BlacklistFile, text.ToString(), new UTF8Encoding(false));
             }
             catch { }
+        }
+
+        /// <summary>
+        /// Writes the address list from the advanced choices: every address of every
+        /// chosen service, plus whatever the person added themselves.
+        /// </summary>
+        public static int SaveAdvancedBlacklist()
+        {
+            List<string> hosts = new List<string>();
+
+            foreach (string service in SelectedServices)
+                foreach (string host in ProbeList.HostsInGroup(service))
+                    if (!hosts.Contains(host)) hosts.Add(host);
+
+            foreach (string target in CustomTargets)
+                if (!hosts.Contains(target)) hosts.Add(target);
+
+            SaveBlacklist(hosts);
+            return hosts.Count;
         }
 
         /// <summary>How many host names the engine is currently limited to.</summary>
@@ -187,6 +226,10 @@ namespace EasyDPI
                     else if (key == "updatecheck") CheckForUpdates = IsTruthy(value);
                     else if (key == "updatenotified") UpdateNotifiedVersion = value;
                     else if (key == "scope") TargetedScope = value.Trim().ToLowerInvariant() == "targeted";
+                    else if (key == "mode") AdvancedMode = value.Trim().ToLowerInvariant() == "advanced";
+                    else if (key == "services") SelectedServices = SplitList(value);
+                    else if (key == "targets") CustomTargets = SplitDomains(value);
+                    else if (key == "blockedservices") BlockedServices = SplitList(value);
                 }
             }
             catch { }
@@ -220,6 +263,15 @@ namespace EasyDPI
                 text.AppendLine("#            machine travels untouched, including a VPN.");
                 text.AppendLine("scope=" + (TargetedScope ? "targeted" : "all"));
                 text.AppendLine();
+                text.AppendLine("# auto     = the application decides what to cover.");
+                text.AppendLine("# advanced = cover exactly the services and addresses listed below.");
+                text.AppendLine("mode=" + (AdvancedMode ? "advanced" : "auto"));
+                text.AppendLine("services=" + string.Join(", ", SelectedServices.ToArray()));
+                text.AppendLine("targets=" + string.Join(", ", CustomTargets.ToArray()));
+                text.AppendLine();
+                text.AppendLine("# Written by the measurement: the services it found blocked here.");
+                text.AppendLine("blockedServices=" + string.Join(", ", BlockedServices.ToArray()));
+                text.AppendLine();
                 text.AppendLine("# 1 = check GitHub for a newer release when the window opens, 0 = never.");
                 text.AppendLine("# With this off, EasyDPI makes no network calls of its own.");
                 text.AppendLine("updateCheck=" + (CheckForUpdates ? "1" : "0"));
@@ -240,6 +292,20 @@ namespace EasyDPI
         {
             string v = value.ToLowerInvariant();
             return v == "1" || v == "true" || v == "yes";
+        }
+
+        /// <summary>Comma separated values that are not domain names, such as group labels.</summary>
+        static List<string> SplitList(string value)
+        {
+            List<string> items = new List<string>();
+
+            foreach (string part in value.Split(','))
+            {
+                string item = part.Trim();
+                if (item.Length > 0 && !items.Contains(item)) items.Add(item);
+            }
+
+            return items;
         }
 
         static List<string> SplitDomains(string value)

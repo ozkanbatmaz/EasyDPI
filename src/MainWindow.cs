@@ -34,6 +34,7 @@ namespace EasyDPI
         IconButton toggleButton;
         IconButton uninstallButton;
         IconButton reportButton;
+        AdvancedPane advancedPane;
         LinkText autoTuneLink;
         TextBox activityLog;
 
@@ -60,6 +61,7 @@ namespace EasyDPI
             BuildStatusPane();
             BuildDetailList();
             BuildLogCard();
+            BuildAdvancedPane();
 
             ShowTab(0);
 
@@ -82,6 +84,7 @@ namespace EasyDPI
             tabBar.Size = new Size(WindowWidth, TabBarHeight);
             tabBar.AddTab(EmbeddedAssets.HeroShield, Strings.Get("tab.status"));
             tabBar.AddTab(EmbeddedAssets.IconLog, Strings.Get("tab.log"));
+            tabBar.AddTab(EmbeddedAssets.IconTune, Strings.Get("tab.advanced"));
             tabBar.SelectedIndexChanged += new EventHandler(delegate { ShowTab(tabBar.SelectedIndex); });
             tabBar.SettingsClicked += new EventHandler(OnSettingsClicked);
             Controls.Add(tabBar);
@@ -174,6 +177,28 @@ namespace EasyDPI
             Controls.Add(uninstallButton);
         }
 
+        void BuildAdvancedPane()
+        {
+            advancedPane = new AdvancedPane(WindowWidth);
+            advancedPane.Location = new Point(0, ContentTop + TabBarHeight);
+            advancedPane.Report = Report;
+            advancedPane.Visible = false;
+            advancedPane.Applied += new EventHandler(OnScopeApplied);
+            Controls.Add(advancedPane);
+        }
+
+        /// <summary>
+        /// Re-applies immediately when protection is on. A coverage setting that takes
+        /// effect at some unspecified later point is one people cannot tell they changed.
+        /// </summary>
+        void OnScopeApplied(object sender, EventArgs e)
+        {
+            if (!BypassController.IsActive || working) return;
+
+            SetWorking(true, Strings.Get("button.turningOn"));
+            RunInBackground(delegate { BypassController.TurnOn(Report); });
+        }
+
         void ShowTab(int index)
         {
             statusPane.Visible = (index == 0);
@@ -181,6 +206,7 @@ namespace EasyDPI
             logCard.Visible = (index == 1);
             uninstallButton.Visible = (index == 1);
             reportButton.Visible = (index == 1);
+            advancedPane.Visible = (index == 2);
         }
 
         // ------------------------------------------------------------------
@@ -499,47 +525,11 @@ namespace EasyDPI
         void OnSettingsClicked(object sender, EventArgs e)
         {
             PopupMenu menu = new PopupMenu();
-            menu.AddItem(ScopeMenuText(), new EventHandler(delegate { ToggleScope(); }));
             menu.AddItem(Strings.Get("menu.showIntro"), new EventHandler(delegate { ShowIntroduction(); }));
             menu.AddItem(Strings.Get("menu.openConfig"), new EventHandler(delegate { OpenConfigFolder(); }));
 
             // Hangs from the right edge of the window, just under the gear
             menu.ShowAlignedRight(this, new Point(WindowWidth - 18, ContentTop + TabBarHeight - 4));
-        }
-
-        static string ScopeMenuText()
-        {
-            return (Settings.TargetedScope ? "✓  " : "     ") + Strings.Get("menu.targetedScope");
-        }
-
-        /// <summary>
-        /// Switches between reshaping everything and reshaping only the addresses the last
-        /// measurement found blocked, and re-applies immediately when protection is on —
-        /// a setting that takes effect at some unspecified later point is a setting people
-        /// cannot tell they have changed.
-        /// </summary>
-        void ToggleScope()
-        {
-            if (working) return;
-
-            Settings.TargetedScope = !Settings.TargetedScope;
-            Settings.Save();
-
-            if (Settings.TargetedScope && Settings.BlacklistCount() == 0)
-            {
-                // Nothing measured yet, so there is no list to narrow to and the engine
-                // would quietly go on reshaping everything.
-                Report(Strings.Get("scope.noList"));
-                return;
-            }
-
-            Report(Strings.Get(Settings.TargetedScope ? "scope.targeted" : "scope.all",
-                               Settings.BlacklistCount()));
-
-            if (!BypassController.IsActive) return;
-
-            SetWorking(true, Strings.Get("button.turningOn"));
-            RunInBackground(delegate { BypassController.TurnOn(Report); });
         }
 
         /// <summary>
@@ -559,6 +549,8 @@ namespace EasyDPI
             // The language may have changed while the introduction was open.
             tabBar.SetTabText(0, Strings.Get("tab.status"));
             tabBar.SetTabText(1, Strings.Get("tab.log"));
+            tabBar.SetTabText(2, Strings.Get("tab.advanced"));
+            advancedPane.ApplyLanguage();
             uninstallButton.Text = Strings.Get("button.uninstall");
             uninstallButton.Invalidate();
             reportButton.Text = Strings.Get("button.saveReport");

@@ -203,6 +203,35 @@ namespace EasyDPI
             return hosts;
         }
 
+        /// <summary>
+        /// Groups a person can choose to cover, in display order. Controls are left out:
+        /// they exist to catch a setting that breaks ordinary browsing, and are not
+        /// something anybody would ask to have the bypass applied to.
+        /// </summary>
+        public static List<string> SelectableGroups()
+        {
+            List<string> groups = new List<string>();
+
+            foreach (ProbeHost host in Build())
+            {
+                if (host.IsControl) continue;
+                if (!groups.Contains(host.Group)) groups.Add(host.Group);
+            }
+
+            return groups;
+        }
+
+        /// <summary>Every address belonging to one group.</summary>
+        public static List<string> HostsInGroup(string group)
+        {
+            List<string> hosts = new List<string>();
+
+            foreach (ProbeHost host in Build())
+                if (host.Group == group && !host.IsControl) hosts.Add(host.Host);
+
+            return hosts;
+        }
+
         /// <summary>Group names in the order they should appear in a report.</summary>
         public static List<string> GroupsOf(IList<ProbeHost> hosts)
         {

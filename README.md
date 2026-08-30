@@ -94,11 +94,17 @@ The result is written to `bin/config.ini`. Run it again whenever you change netw
 
 ## Scope
 
-By default EasyDPI reshapes every connection the machine makes. The gear menu offers the alternative: **Apply only to blocked addresses**, which limits the engine to the addresses the last measurement actually found blocked. They are written to `bin/blacklist.txt`, and the setting is `scope=targeted` in `bin/config.ini`.
+The **Advanced** tab decides where the bypass applies. It has two modes and automatic is the default, because for almost everybody it is the right answer.
 
-Narrow is not automatically better, and the trade is worth understanding. Anything blocked that was not on the list when it was measured — a site visited later, an endpoint a service moves to — is left alone and stays blocked until the next measurement. What narrow buys is that nothing else is touched: a VPN, a game, a banking app and every site that was never blocked all travel exactly as they would with EasyDPI switched off.
+**Automatic** covers every connection the machine makes. Nothing to decide, nothing missed.
 
-If you want this for two services and would rather it did not apply to the whole computer, that is the setting.
+**Choose myself** narrows the engine to the services you tick. Everything else on the machine — a VPN, a game, a banking app, every site that was never blocked — travels exactly as it would with EasyDPI switched off. The services the last measurement found blocked arrive already ticked, since the application has just worked out which ones are blocked on your connection. You can add addresses of your own underneath; subdomains of what you enter are covered too.
+
+The choice is stored as `mode=` in `bin/config.ini` and the resulting address list is written to `bin/blacklist.txt`.
+
+Narrow is not automatically better. Anything blocked that was not covered when you applied — a site you visit later, an endpoint a service moves to — is left alone and stays blocked until you widen the selection or measure again. This is the setting for somebody who wants EasyDPI for two services and would rather it did not apply to the whole computer.
+
+**It cannot offer a list of Windows applications**, which is the first thing people ask for. The engine filters on host names read out of the traffic; it has no way of knowing which program a packet came from. Choosing a service is the honest equivalent — ticking Discord covers the addresses Discord talks to, whichever program is talking to them.
 
 ## The log tab
 
@@ -157,7 +163,7 @@ Antivirus software occasionally goes further and blocks the file outright, with 
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.4.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.3.0.zip -Algorithm SHA256
 ```
 
 and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.

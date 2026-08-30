@@ -163,7 +163,7 @@ Antivirus software occasionally goes further and blocks the file outright, with 
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.3.0.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.3.1.zip -Algorithm SHA256
 ```
 
 and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.

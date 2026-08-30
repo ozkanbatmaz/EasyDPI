@@ -232,6 +232,35 @@ namespace EasyDPI
             return hosts;
         }
 
+        /// <summary>
+        /// The group's name as a person should read it.
+        ///
+        /// The internal names are English and structural — "Roblox client" versus
+        /// "Roblox site" describes where an address is called from, which is the right
+        /// distinction for the catalogue and a useless one to show somebody deciding what
+        /// to cover. They are also what is written to config.ini, so they stay as they
+        /// are and the label is looked up separately.
+        /// </summary>
+        public static string DisplayName(string group)
+        {
+            return Strings.Get(LabelKey(group, "name"));
+        }
+
+        /// <summary>
+        /// What is actually inside the group, named. "Social, 9 addresses" tells nobody
+        /// whether the thing they care about is in there.
+        /// </summary>
+        public static string Examples(string group)
+        {
+            return Strings.Get(LabelKey(group, "examples"));
+        }
+
+        static string LabelKey(string group, string suffix)
+        {
+            string key = group.ToLowerInvariant().Replace(" ", "");
+            return "group." + key + "." + suffix;
+        }
+
         /// <summary>Group names in the order they should appear in a report.</summary>
         public static List<string> GroupsOf(IList<ProbeHost> hosts)
         {

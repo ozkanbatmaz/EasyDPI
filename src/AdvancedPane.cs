@@ -34,7 +34,7 @@ namespace EasyDPI
     public class AdvancedPane : Control
     {
         const int SideMargin = 24;
-        const int RowHeight = 32;
+        const int RowHeight = 38;
 
         /// <summary>Raised when the user applies a change that needs the engine restarted.</summary>
         public event EventHandler Applied;
@@ -58,43 +58,43 @@ namespace EasyDPI
             BackColor = UiTheme.Background;
 
             int cardWidth = width - SideMargin * 2;
-            int y = 18;
+            int y = 14;
 
             // -- mode -----------------------------------------------------------
             modeCard = new TitledCard();
             modeCard.TitleKey = "advanced.modeTitle";
             modeCard.Location = new Point(SideMargin, y);
-            modeCard.Size = new Size(cardWidth, 96);
+            modeCard.Size = new Size(cardWidth, 88);
             modeCard.Radius = 14f;
             Controls.Add(modeCard);
 
             int buttonWidth = (cardWidth - 16 * 2 - 10) / 2;
 
             automaticButton = new IconButton();
-            automaticButton.Size = new Size(buttonWidth, 38);
-            automaticButton.Location = new Point(16, 36);
+            automaticButton.Size = new Size(buttonWidth, 36);
+            automaticButton.Location = new Point(16, 34);
             automaticButton.Radius = 11f;
             automaticButton.Font = UiTheme.Semibold(10f);
             automaticButton.Click += new EventHandler(delegate { SetMode(false); });
             modeCard.Controls.Add(automaticButton);
 
             advancedButton = new IconButton();
-            advancedButton.Size = new Size(buttonWidth, 38);
-            advancedButton.Location = new Point(16 + buttonWidth + 10, 36);
+            advancedButton.Size = new Size(buttonWidth, 36);
+            advancedButton.Location = new Point(16 + buttonWidth + 10, 34);
             advancedButton.Radius = 11f;
             advancedButton.Font = UiTheme.Semibold(10f);
             advancedButton.Click += new EventHandler(delegate { SetMode(true); });
             modeCard.Controls.Add(advancedButton);
 
             modeHint = new Label();
-            modeHint.Location = new Point(16, 76);
-            modeHint.Size = new Size(cardWidth - 32, 18);
+            modeHint.Location = new Point(16, 68);
+            modeHint.Size = new Size(cardWidth - 32, 16);
             modeHint.Font = UiTheme.Regular(8.75f);
             modeHint.ForeColor = UiTheme.TextMuted;
             modeHint.BackColor = Color.Transparent;
             modeCard.Controls.Add(modeHint);
 
-            y += modeCard.Height + 12;
+            y += modeCard.Height + 10;
 
             // -- services -------------------------------------------------------
             List<string> groups = ProbeList.SelectableGroups();
@@ -102,44 +102,44 @@ namespace EasyDPI
             servicesCard = new TitledCard();
             servicesCard.TitleKey = "advanced.servicesTitle";
             servicesCard.Location = new Point(SideMargin, y);
-            servicesCard.Size = new Size(cardWidth, 44 + groups.Count * RowHeight + 12);
+            servicesCard.Size = new Size(cardWidth, 42 + groups.Count * RowHeight + 10);
             servicesCard.Radius = 14f;
             Controls.Add(servicesCard);
 
             services = new ServiceList(groups);
-            services.Location = new Point(10, 40);
+            services.Location = new Point(10, 38);
             services.Size = new Size(cardWidth - 20, groups.Count * RowHeight);
             servicesCard.Controls.Add(services);
 
-            y += servicesCard.Height + 12;
+            y += servicesCard.Height + 10;
 
             // -- addresses of your own ------------------------------------------
             customCard = new TitledCard();
             customCard.TitleKey = "advanced.customTitle";
             customCard.Location = new Point(SideMargin, y);
-            customCard.Size = new Size(cardWidth, 96);
+            customCard.Size = new Size(cardWidth, 80);
             customCard.Radius = 14f;
             Controls.Add(customCard);
 
             customTargets = new TextBox();
-            customTargets.Location = new Point(16, 40);
+            customTargets.Location = new Point(16, 36);
             customTargets.Size = new Size(cardWidth - 32, 22);
             customTargets.Font = UiTheme.Regular(9.5f);
             customTargets.BorderStyle = BorderStyle.FixedSingle;
             customCard.Controls.Add(customTargets);
 
             customHint = new Label();
-            customHint.Location = new Point(16, 68);
-            customHint.Size = new Size(cardWidth - 32, 18);
+            customHint.Location = new Point(16, 60);
+            customHint.Size = new Size(cardWidth - 32, 16);
             customHint.Font = UiTheme.Regular(8.75f);
             customHint.ForeColor = UiTheme.TextMuted;
             customHint.BackColor = Color.Transparent;
             customCard.Controls.Add(customHint);
 
-            y += customCard.Height + 16;
+            y += customCard.Height + 14;
 
             applyButton = new IconButton();
-            applyButton.Size = new Size(cardWidth, 42);
+            applyButton.Size = new Size(cardWidth, 40);
             applyButton.Location = new Point(SideMargin, y);
             applyButton.Radius = 12f;
             applyButton.Font = UiTheme.Semibold(11f);
@@ -147,7 +147,7 @@ namespace EasyDPI
             applyButton.Click += new EventHandler(OnApplyClicked);
             Controls.Add(applyButton);
 
-            Height = y + applyButton.Height + 24;
+            Height = y + applyButton.Height + 16;
             Width = width;
 
             LoadFromSettings();
@@ -359,7 +359,7 @@ namespace EasyDPI
                             UiTheme.FillRounded(g, new RectangleF(2, top + 2, Width - 4, RowHeight - 4),
                                                 8f, UiTheme.AccentTint);
 
-                        RectangleF box = new RectangleF(10, top + (RowHeight - 18) / 2f, 18, 18);
+                        RectangleF box = new RectangleF(10, top + 9, 18, 18);
                         bool on = ticked[index];
 
                         Color boxFill = !Enabled ? Color.FromArgb(236, 239, 244)
@@ -383,11 +383,16 @@ namespace EasyDPI
                             }
 
                         Color textColour = Enabled ? UiTheme.TextPrimary : UiTheme.TextMuted;
-                        Size labelSize = UiTheme.Measure(groups[index], labelFont);
-                        UiTheme.Text(g, groups[index], labelFont, textColour,
-                                     38, top + (RowHeight - labelSize.Height) / 2);
+                        UiTheme.Text(g, ProbeList.DisplayName(groups[index]), labelFont, textColour,
+                                     38, top + 4);
 
-                        // The measurement's verdict, so the list is not just names
+                        // The second line is the point of the row: a name like "Social"
+                        // and a count of addresses tells nobody whether the thing they
+                        // care about is inside it.
+                        UiTheme.Text(g, ProbeList.Examples(groups[index]), countFont,
+                                     Enabled ? UiTheme.TextMuted : Color.FromArgb(178, 186, 198),
+                                     38, top + 20);
+
                         string note = Blocked.Contains(groups[index])
                             ? Strings.Get("advanced.blockedHere")
                             : ProbeList.HostsInGroup(groups[index]).Count + " " + Strings.Get("advanced.addresses");
@@ -397,7 +402,7 @@ namespace EasyDPI
 
                         Size noteSize = UiTheme.Measure(note, countFont);
                         UiTheme.Text(g, note, countFont, noteColour,
-                                     Width - noteSize.Width - 12, top + (RowHeight - noteSize.Height) / 2);
+                                     Width - noteSize.Width - 12, top + 5);
                     }
                 }
             }

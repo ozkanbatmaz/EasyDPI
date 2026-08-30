@@ -117,6 +117,14 @@ namespace EasyDPI
             Line(text, "  DNS port 53     : " + (occupant == null ? "not held by anything else" : "held by " + occupant));
             Line(text, "");
 
+            // What Windows actually runs for each service, which is where a service that
+            // is registered but never starts gives itself away: a path left behind by an
+            // older copy, or one with a space in it that was registered without quotes.
+            Section(text, "Service registration");
+            Line(text, "  GoodbyeDPI      : " + (ServiceManager.RegisteredImagePath(ServiceManager.BypassService) ?? "not registered"));
+            Line(text, "  dnscrypt-proxy  : " + (ServiceManager.RegisteredImagePath(ServiceManager.DnsService) ?? "not registered"));
+            Line(text, "");
+
             Section(text, "Network");
             try { Line(text, "  DNS servers     : " + NetworkTools.DescribeCurrentDns()); }
             catch (Exception error) { Line(text, "  DNS servers     : unreadable (" + error.Message + ")"); }
@@ -218,6 +226,14 @@ namespace EasyDPI
 
                         if (product != null)
                         {
+                            // Windows 11 still calls itself "Windows 10 Pro" in this key.
+                            // The build number is the only honest field: 22000 and above
+                            // is 11, and reporting otherwise sends people looking for
+                            // problems in the wrong operating system.
+                            int buildNumber;
+                            if (build != null && int.TryParse(build, out buildNumber) && buildNumber >= 22000)
+                                product = product.Replace("Windows 10", "Windows 11");
+
                             string described = product;
                             if (display != null) described += " " + display;
                             if (build != null) described += " (build " + build +

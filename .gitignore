@@ -2,7 +2,8 @@
 easydpi.log
 bin/config.ini
 
-# Resolver list cache downloaded by dnscrypt-proxy
+# Resolver list cache, rewritten by dnscrypt-proxy whenever it refreshes.
+# The pristine copies the release archive is built from live in dns/seed/.
 dns/*.md
 dns/*.minisig
 
@@ -18,3 +19,7 @@ push.cmd
 *.obj
 *.suo
 *.user
+
+# Diagnostic reports written by the Save report button, including when the app
+# is run from this folder during development.
+easydpi-report-*.txt

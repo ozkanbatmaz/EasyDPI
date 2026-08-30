@@ -139,7 +139,7 @@ Antivirüs bazen bir adım öteye gidip dosyayı tamamen engelleyebiliyor: "vir�
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.1.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.2.zip -Algorithm SHA256
 ```
 
 ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.

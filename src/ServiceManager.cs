@@ -143,16 +143,98 @@ namespace EasyDPI
         /// </summary>
         const int DnsStartTimeoutMs = 60000;
 
-        /// <summary>dnscrypt-proxy registers its own service, so we only invoke it when missing.</summary>
+        /// <summary>
+        /// Registers the resolver service, and repairs the registration afterwards.
+        ///
+        /// Two things go wrong here that both look identical from the outside — the
+        /// service exists, and it never starts.
+        ///
+        /// The first is quoting. dnscrypt-proxy registers itself with an unquoted
+        /// ImagePath: dns\dnscrypt-proxy.exe -config dns\dnscrypt-proxy.toml. If the
+        /// application sits anywhere with a space in the path — "New folder (2)" on the
+        /// desktop, say, which is exactly where people put a downloaded zip — Windows
+        /// reads the executable as everything up to the first space and cannot find it.
+        /// The service is registered and permanently unstartable.
+        ///
+        /// The second is staleness. Copying a new version into a new folder and deleting
+        /// the old one leaves the registration pointing at an executable that no longer
+        /// exists, and simply checking "does a service by this name exist" concludes that
+        /// there is nothing to do.
+        ///
+        /// So the registration is compared against this copy and rewritten when it does
+        /// not match, rather than trusted because the name is taken.
+        /// </summary>
         public static void EnsureDnsServiceInstalled()
         {
-            if (Exists(DnsService)) return;
             if (!File.Exists(AppPaths.DnscryptExe)) return;
 
-            string output;
-            ProcessRunner.Run(AppPaths.DnscryptExe,
-                "-config \"" + AppPaths.DnscryptConfig + "\" -service install",
-                out output, 60000);
+            if (Exists(DnsService) && !RegistrationPointsHere())
+            {
+                Stop(DnsService);
+                ProcessRunner.Sc("delete " + DnsService);
+                Thread.Sleep(1200);
+            }
+
+            if (!Exists(DnsService))
+            {
+                string output;
+                ProcessRunner.Run(AppPaths.DnscryptExe,
+                    "-config \"" + AppPaths.DnscryptConfig + "\" -service install",
+                    out output, 60000);
+            }
+
+            RepairDnsImagePath();
+        }
+
+        /// <summary>The command line Windows should be running for this copy.</summary>
+        static string CorrectDnsImagePath()
+        {
+            return "\"" + AppPaths.DnscryptExe + "\" -config \"" + AppPaths.DnscryptConfig + "\"";
+        }
+
+        static bool RegistrationPointsHere()
+        {
+            string registered = RegisteredImagePath(DnsService);
+            if (registered == null) return false;
+
+            return registered.IndexOf(AppPaths.DnscryptExe,
+                                      StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        static void RepairDnsImagePath()
+        {
+            try
+            {
+                string registered = RegisteredImagePath(DnsService);
+                string correct = CorrectDnsImagePath();
+
+                if (registered == null || registered == correct) return;
+
+                using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                           ServiceRegistryPath + DnsService, true))
+                {
+                    if (key != null) key.SetValue("ImagePath", correct,
+                                                  Microsoft.Win32.RegistryValueKind.ExpandString);
+                }
+            }
+            catch { }
+        }
+
+        const string ServiceRegistryPath = @"SYSTEM\CurrentControlSet\Services\";
+
+        /// <summary>The command line a registered service actually runs, or null.</summary>
+        public static string RegisteredImagePath(string serviceName)
+        {
+            try
+            {
+                using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                           ServiceRegistryPath + serviceName))
+                {
+                    if (key == null) return null;
+                    return key.GetValue("ImagePath") as string;
+                }
+            }
+            catch { return null; }
         }
 
         /// <summary>

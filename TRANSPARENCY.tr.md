@@ -18,7 +18,9 @@ Son doğrulama: 10 Ağustos 2026, EasyDPI 1.0.0 üzerinde.
 | Yazılan dosyalar | `bin\config.ini` (ayarların), `easydpi.log` (etkinlik günlüğü; çalıştırmalar arasında saklanır, 1 MB'ta kırpılır), `dns\*.md` (çözümleyici listesi önbelleği) |
 
 Korumayı kapatmak bunların hepsini geri alır: iki servis de durdurulur **ve
-devre dışı bırakılır**, DNS DHCP'ye döner. Arkada çalışan veya yeniden
+devre dışı bırakılır**, DNS DHCP'ye döner — yalnızca bu uygulamanın yerel
+çözümleyiciye yönlendirdiği adaptörlerde, başkasında değil; yani bir VPN'in kendi
+DNS ayarı istemcisinin bıraktığı gibi kalır. Arkada çalışan veya yeniden
 başlamaya ayarlı hiçbir şey kalmaz.
 
 Servisler uygulama klasörünün bulunduğu yeri gösterir. Klasörü taşır veya
@@ -110,7 +112,7 @@ sağlama toplamlarını karşılaştırdım:
 | `bin\WinDivert.dll` | GoodbyeDPI arşivinin içinde | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | evet |
 | `bin\WinDivert64.sys` | GoodbyeDPI arşivinin içinde | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | evet |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | evet |
-| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `061FD0D69F730758E7BB0E49ED7A32AFFCA2238610070128252AC938BF8C1371` | — |
+| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `D5D5A694C3AC662B5099C9489EF649F264970994EE7B640AE187592317448804` | — |
 
 Arşivde ayrıca `dns\public-resolvers.md` ve `dns\relays.md` dosyaları,
 `.minisig` imzalarıyla birlikte geliyor. Bunlar DNSCrypt projesinin açık sunucu

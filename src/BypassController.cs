@@ -32,6 +32,12 @@ namespace EasyDPI
             ServiceManager.KillOrphanedBypassProcesses();
             Thread.Sleep(1200);
 
+            // A tunnel already carries traffic past the provider's inspection, so the
+            // packet tricks are at best redundant there and at worst aimed at a route the
+            // traffic no longer takes. Said plainly rather than left to be discovered.
+            if (NetworkTools.IsVpnActive())
+                report(Strings.Get("log.vpnActive", NetworkTools.DescribeVpnAdapter() ?? "VPN"));
+
             // Layer 1 — encrypted DNS
             if (Settings.UseEncryptedDns)
             {

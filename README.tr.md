@@ -102,6 +102,16 @@ Altında iki buton var.
 
 **Uygulamayı Sil**, her şeyi tek adımda kaldırır: iki servis de durdurulup kaydı silinir, WinDivert sürücüsünün kaydı kaldırılır, DNS ağına geri verilir ve uygulamanın kendi dosyaları silinir. Yalnız EasyDPI'ın kurduğu dosyalar silinir — o klasörde tuttuğun başka her şey yerinde kalır, klasörün kendisi de ancak içi boşaldıysa kaldırılır.
 
+## VPN ile birlikte kullanım
+
+İkisi birlikte açık olabilir, EasyDPI artık VPN'in yoluna çıkmıyor; ama örtüşüyorlar ve bu örtüşmenin bir bedeli var.
+
+DNS tarafı tamamen çözüldü. EasyDPI çözümleyici ayarını hiçbir zaman bir VPN adaptörüne yazmıyor, koruma kapatıldığında da yalnızca kendi yerel çözümleyiciye yönlendirdiği adaptörleri geri alıyor — yani VPN'in kendi DNS yapılandırması, diğer her şeyle birlikte sıfırlanmak yerine olduğu gibi kalıyor.
+
+Paket tarafı ise bir takas. En etkili ayarlar, bağlantını inceleyen donanıma ulaşıp gerçek sunucuya varmadan ölmesi gereken sahte paketler göndererek çalışıyor. Bu nişan, senin makinenden çıkan yola göre hesaplanıyor; tünel içindeyken trafiğin o yoldan gitmiyor — yolda ölmesi gereken paket sunucuya kadar varıp bağlantıyı bozabiliyor. Bu yüzden VPN bağlıyken ayar bulucu o ayarları listeden çıkarıp yalnızca parçalama yapanların en iyisini seçiyor. Daha azını açmasını bekle: çoğu ağda tek başına parçalama, parçalama + sahte paketten zayıftır.
+
+VPN zaten trafiğini incelemenin ötesine taşıyorsa, taşıdığı siteler için EasyDPI'a ihtiyacın yok. VPN bağlıyken değeri, şifreli DNS ve tünelin yönlendirmediği her şey.
+
 ## Güncellemeler
 
 Pencere açıldığında EasyDPI, GitHub'a daha yeni bir sürüm olup olmadığını sorar. Varsa bunu sürüm başına bir kez söyler ve kurmayı önerir: arşiv indirilir, o dosya için yayınlanan SHA-256 ile karşılaştırılır ve ancak ondan sonra kurulumunun üzerine açılır. `bin/config.ini` arşivin içinde olmadığı için ayarların yerinde kalır. Koruma açıksa sonrasında geri açılır ve uygulama yeni sürümle yeniden başlar.
@@ -139,7 +149,7 @@ Antivirüs bazen bir adım öteye gidip dosyayı tamamen engelleyebiliyor: "vir�
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.2.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.3.zip -Algorithm SHA256
 ```
 
 ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.

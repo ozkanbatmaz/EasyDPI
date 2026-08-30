@@ -44,8 +44,95 @@ namespace EasyDPI
         // ---------------------------------------------------------------
 
         /// <summary>
-        /// Finds the adapter that actually reaches the internet, skipping virtual and
-        /// tunnel adapters. Requiring a default gateway filters out most of the noise.
+        /// Names that appear in the description of a VPN's virtual adapter. The list is
+        /// matched loosely, because every client names its adapter differently and a
+        /// missed one is not a cosmetic problem: it is how DNS ends up being written to
+        /// a tunnel that disappears when the VPN disconnects.
+        /// </summary>
+        static readonly string[] VpnAdapterMarkers =
+        {
+            "wireguard", "wintun", "tap-windows", "tap adapter", "openvpn", "wan miniport",
+            "vpn", "nordlynx", "proton", "mullvad", "expressvpn", "surfshark", "cloudflare warp",
+            "tailscale", "zerotier", "softether", "tunnel", "tun interface", "utun"
+        };
+
+        static bool LooksLikeVpn(NetworkInterface adapter)
+        {
+            if (adapter.NetworkInterfaceType == NetworkInterfaceType.Tunnel) return true;
+            if (adapter.NetworkInterfaceType == NetworkInterfaceType.Ppp) return true;
+
+            string label = (adapter.Description + " " + adapter.Name).ToLowerInvariant();
+            foreach (string marker in VpnAdapterMarkers)
+                if (label.Contains(marker)) return true;
+
+            return false;
+        }
+
+        static bool LooksVirtual(NetworkInterface adapter)
+        {
+            string label = (adapter.Description + " " + adapter.Name).ToLowerInvariant();
+            return label.Contains("virtual") || label.Contains("vmware") || label.Contains("hyper-v") ||
+                   label.Contains("vethernet") || label.Contains("loopback") || label.Contains("bluetooth");
+        }
+
+        /// <summary>
+        /// Whether a VPN tunnel is currently up.
+        ///
+        /// This matters because the two tools do overlapping work. A VPN already carries
+        /// traffic past the provider's inspection, and the packet tricks that defeat that
+        /// inspection are computed for the route between this machine and the equipment
+        /// doing the inspecting — a route the traffic no longer takes once it is inside a
+        /// tunnel. Fake packets in particular are aimed at a specific number of hops away;
+        /// sent through a tunnel they can reach the real server instead of dying on the way,
+        /// which breaks the connection rather than saving it.
+        /// </summary>
+        public static bool IsVpnActive()
+        {
+            try
+            {
+                foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (adapter.OperationalStatus != OperationalStatus.Up) continue;
+                    if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+                    if (!LooksLikeVpn(adapter)) continue;
+
+                    // A VPN adapter that exists but carries no route is a client sitting
+                    // idle, not a tunnel in use.
+                    IPInterfaceProperties properties = adapter.GetIPProperties();
+                    if (properties.GatewayAddresses != null && properties.GatewayAddresses.Count > 0)
+                        return true;
+
+                    foreach (UnicastIPAddressInformation address in properties.UnicastAddresses)
+                        if (address.Address.AddressFamily == AddressFamily.InterNetwork) return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        /// <summary>Description of the active tunnel, for the log. Null when there is none.</summary>
+        public static string DescribeVpnAdapter()
+        {
+            try
+            {
+                foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (adapter.OperationalStatus != OperationalStatus.Up) continue;
+                    if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+                    if (LooksLikeVpn(adapter)) return adapter.Description;
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>
+        /// Finds the adapter that actually reaches the internet, skipping virtual adapters
+        /// and VPN tunnels.
+        ///
+        /// Excluding tunnels is the point. Pointing a VPN adapter's DNS at 127.0.0.1 puts
+        /// the setting somewhere that vanishes the moment the VPN disconnects, and leaves
+        /// the real adapter still resolving through the provider in the meantime.
         /// </summary>
         public static NetworkInterface FindActiveAdapter()
         {
@@ -55,12 +142,8 @@ namespace EasyDPI
                 {
                     if (adapter.OperationalStatus != OperationalStatus.Up) continue;
                     if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
-                    if (adapter.NetworkInterfaceType == NetworkInterfaceType.Tunnel) continue;
-
-                    string label = (adapter.Description + " " + adapter.Name).ToLowerInvariant();
-                    if (label.Contains("virtual") || label.Contains("vmware") || label.Contains("hyper-v") ||
-                        label.Contains("vethernet") || label.Contains("loopback") || label.Contains("bluetooth"))
-                        continue;
+                    if (LooksLikeVpn(adapter)) continue;
+                    if (LooksVirtual(adapter)) continue;
 
                     IPInterfaceProperties properties = adapter.GetIPProperties();
                     if (properties.GatewayAddresses == null || properties.GatewayAddresses.Count == 0) continue;
@@ -107,19 +190,61 @@ namespace EasyDPI
             ProcessRunner.FlushDnsCache();
         }
 
-        /// <summary>Hands DNS back to the router / provider (DHCP supplied).</summary>
+        /// <summary>
+        /// Hands DNS back to the router or provider.
+        ///
+        /// Only adapters we actually changed are touched, and they are recognised by what
+        /// they are set to: an adapter whose DNS server is 127.0.0.1 or ::1 was pointed
+        /// there by this application, because nothing else has a reason to. The previous
+        /// version forced every adapter on the machine back to DHCP, which also wiped the
+        /// DNS settings of any VPN that happened to be connected — a tool that quietly
+        /// undoes another tool's configuration on the way out.
+        /// </summary>
         public static void RestoreDefaultDns()
         {
-            foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (adapter.OperationalStatus != OperationalStatus.Up) continue;
-                if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+            bool restoredSomething = false;
 
-                string name = adapter.Name;
-                ProcessRunner.Netsh("interface ipv4 set dnsservers name=\"" + name + "\" source=dhcp");
-                ProcessRunner.Netsh("interface ipv6 set dnsservers name=\"" + name + "\" source=dhcp");
+            try
+            {
+                foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+                    if (!PointsAtLocalResolver(adapter)) continue;
+
+                    RestoreAdapter(adapter.Name);
+                    restoredSomething = true;
+                }
             }
+            catch { }
+
+            // A machine that was never pointed at the local resolver has nothing to undo;
+            // one where the adapter has since been renamed or replaced does, and the
+            // fallback keeps that case from leaving a dead setting behind.
+            if (!restoredSomething)
+            {
+                NetworkInterface adapter = FindActiveAdapter();
+                if (adapter != null) RestoreAdapter(adapter.Name);
+            }
+
             ProcessRunner.FlushDnsCache();
+        }
+
+        static void RestoreAdapter(string name)
+        {
+            ProcessRunner.Netsh("interface ipv4 set dnsservers name=\"" + name + "\" source=dhcp");
+            ProcessRunner.Netsh("interface ipv6 set dnsservers name=\"" + name + "\" source=dhcp");
+        }
+
+        /// <summary>Whether this adapter is resolving through the resolver we install.</summary>
+        static bool PointsAtLocalResolver(NetworkInterface adapter)
+        {
+            try
+            {
+                foreach (IPAddress address in adapter.GetIPProperties().DnsAddresses)
+                    if (IPAddress.IsLoopback(address)) return true;
+            }
+            catch { }
+            return false;
         }
 
         // ---------------------------------------------------------------

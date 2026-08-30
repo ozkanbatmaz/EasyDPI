@@ -168,6 +168,9 @@ namespace EasyDPI
             en["tune.encryptedDnsVerdict"] = "Encrypted DNS: {0}";
             en["tune.required"] = "required";
             en["tune.notRequired"] = "not required";
+            en["tune.vpnDetected"] = "A VPN is connected ({0}).";
+            en["tune.vpnCandidates"] = "   Settings that send fake packets are being left out: they are aimed at the route out of this machine, which is not the route your traffic takes inside a tunnel.";
+            en["log.vpnActive"] = "A VPN is connected ({0}). Both are on; if something stops working, turn one of them off.";
             en["button.uninstall"] = "Remove EasyDPI";
             en["button.saveReport"] = "Save report";
             en["update.available"] = "A newer version is available: {0}";
@@ -320,6 +323,9 @@ namespace EasyDPI
             tr["tune.encryptedDnsVerdict"] = "Şifreli DNS: {0}";
             tr["tune.required"] = "gerekli";
             tr["tune.notRequired"] = "gerekmiyor";
+            tr["tune.vpnDetected"] = "Bir VPN bağlı ({0}).";
+            tr["tune.vpnCandidates"] = "   Sahte paket gönderen ayarlar listeden çıkarıldı: onlar bu makineden çıkan yola göre hesaplanıyor, tünel içindeki trafiğin gittiği yol ise o değil.";
+            tr["log.vpnActive"] = "Bir VPN bağlı ({0}). İkisi de açık; bir şey çalışmamaya başlarsa birini kapat.";
             tr["button.uninstall"] = "Uygulamayı Sil";
             tr["button.saveReport"] = "Rapor İndir";
             tr["update.available"] = "Daha yeni bir sürüm var: {0}";
@@ -472,6 +478,9 @@ namespace EasyDPI
             ru["tune.encryptedDnsVerdict"] = "Шифрованный DNS: {0}";
             ru["tune.required"] = "требуется";
             ru["tune.notRequired"] = "не требуется";
+            ru["tune.vpnDetected"] = "Подключён VPN ({0}).";
+            ru["tune.vpnCandidates"] = "   Настройки с поддельными пакетами исключены: они рассчитаны на маршрут из этой машины, а внутри туннеля трафик идёт не по нему.";
+            ru["log.vpnActive"] = "Подключён VPN ({0}). Работают оба; если что-то перестанет открываться, выключите одно из двух.";
             ru["button.uninstall"] = "Удалить EasyDPI";
             ru["button.saveReport"] = "Сохранить отчёт";
             ru["update.available"] = "Доступна более новая версия: {0}";

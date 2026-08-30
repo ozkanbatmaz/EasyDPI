@@ -102,6 +102,16 @@ Two buttons sit under it.
 
 **Remove EasyDPI** uninstalls everything in one step: both services stopped and unregistered, the WinDivert driver unregistered, DNS handed back to your network, and the application's own files deleted. Only files EasyDPI installed are removed — anything else you keep in that folder is left alone, and the folder itself goes only if nothing remains in it.
 
+## Using it with a VPN
+
+They can both be on, and EasyDPI now stays out of the VPN's way, but they overlap and the overlap costs something.
+
+DNS is the part that is fully solved. EasyDPI never writes its resolver setting to a VPN adapter, and when protection is turned off it restores only the adapters it pointed at the local resolver — so a VPN's own DNS configuration is left alone instead of being reset along with everything else.
+
+Packets are the part that is a trade-off. The most effective settings work by sending fake packets that are supposed to reach the equipment inspecting your connection and die before the real server sees them. That aim is calculated for the route out of your machine, and inside a tunnel your traffic does not take that route — the packet meant to die on the way can arrive at the server and break the connection instead. So when a VPN is connected, the tuner leaves those settings out and picks the best of the ones that only fragment. Expect it to get past less: fragmentation alone is weaker than fragmentation plus fake packets on most networks.
+
+If a VPN is already carrying your traffic past the inspection, you do not need EasyDPI for the sites it carries. Its value with a VPN connected is the encrypted DNS and whatever the tunnel is not routing.
+
 ## Updates
 
 When the window opens, EasyDPI asks GitHub whether a newer release exists. If there is one it says so, once per release, and offers to install it: the archive is downloaded, checked against the SHA-256 published for it, and only then unpacked over your installation. Your `bin/config.ini` is not in the archive, so your settings survive. Protection is restored afterwards if it was on, and the application restarts into the new version.
@@ -139,7 +149,7 @@ Antivirus software occasionally goes further and blocks the file outright, with 
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.2.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.3.zip -Algorithm SHA256
 ```
 
 and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.

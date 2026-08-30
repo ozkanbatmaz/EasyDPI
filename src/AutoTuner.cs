@@ -139,6 +139,49 @@ namespace EasyDPI
             }
         }
 
+        /// <summary>
+        /// Whether a setting sends fake packets.
+        ///
+        /// Fake packets are aimed: they carry a manipulated TTL, sequence number or
+        /// checksum so that the inspecting equipment sees them and the real server never
+        /// does. That aim is calculated for the route out of this machine. Inside a VPN
+        /// the traffic takes a different route entirely, so the packet meant to die on the
+        /// way can arrive at the real server and break the connection instead. Presets -5
+        /// to -9 all use them; -1 to -4 and the fragmentation-only settings do not.
+        /// </summary>
+        static bool UsesFakePackets(string arguments)
+        {
+            string flags = arguments.ToLowerInvariant();
+
+            if (flags.Contains("--set-ttl") || flags.Contains("--auto-ttl") ||
+                flags.Contains("--wrong-seq") || flags.Contains("--wrong-chksum") ||
+                flags.Contains("--fake-")) return true;
+
+            // Matched as whole arguments: "--auto-ttl 1-4-10" contains "-4" and would
+            // otherwise be read as the -4 preset.
+            foreach (string token in flags.Split(' '))
+                for (int preset = 5; preset <= 9; preset++)
+                    if (token == "-" + preset) return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// The candidates worth trying on this machine. With a VPN connected the ones that
+        /// send fake packets are left out: they are the settings most likely to break the
+        /// tunnel, and a setting that wins the measurement by breaking the connection the
+        /// user actually wanted is not a win.
+        /// </summary>
+        static List<string> CandidatesFor(bool vpnActive)
+        {
+            List<string> chosen = new List<string>();
+
+            foreach (string candidate in Candidates)
+                if (!vpnActive || !UsesFakePackets(candidate)) chosen.Add(candidate);
+
+            return chosen;
+        }
+
         static string Pad(string text, int width)
         {
             if (text.Length >= width) return text;
@@ -370,6 +413,13 @@ namespace EasyDPI
             Stopwatch clock = Stopwatch.StartNew();
             report(Strings.Get("tune.start"));
 
+            bool vpnActive = NetworkTools.IsVpnActive();
+            if (vpnActive)
+            {
+                report(Strings.Get("tune.vpnDetected", NetworkTools.DescribeVpnAdapter() ?? "VPN"));
+                report(Strings.Get("tune.vpnCandidates"));
+            }
+
             List<ProbeHost> probes = ProbeList.Build();
             List<ProbeHost> targets = new List<ProbeHost>();
             List<ProbeHost> controls = new List<ProbeHost>();
@@ -515,12 +565,13 @@ namespace EasyDPI
             }
 
             report("");
-            report(Strings.Get("tune.step3", Candidates.Length));
+            List<string> candidates = CandidatesFor(vpnActive);
+            report(Strings.Get("tune.step3", candidates.Count));
             report("   " + Pad(Strings.Get("tune.colSetting"), 74) + Strings.Get("tune.colOpen"));
 
             List<CandidateResult> screened = new List<CandidateResult>();
 
-            foreach (string candidate in Candidates)
+            foreach (string candidate in candidates)
             {
                 CandidateResult result = Evaluate(candidate, screenTargets, controlNames,
                                                   ScreenRepeats, ScreenTimeoutMs, false);

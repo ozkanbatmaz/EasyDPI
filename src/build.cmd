@@ -46,6 +46,8 @@ echo.
     /reference:System.Drawing.dll ^
     /reference:System.Windows.Forms.dll ^
     /reference:System.ServiceProcess.dll ^
+    /reference:System.IO.Compression.dll ^
+    /reference:System.IO.Compression.FileSystem.dll ^
     Program.cs ^
     Strings.cs ^
     Settings.cs ^
@@ -60,6 +62,10 @@ echo.
     NetworkTools.cs ^
     ProbeList.cs ^
     BypassController.cs ^
+    Uninstaller.cs ^
+    DiagnosticReport.cs ^
+    UpdateCheck.cs ^
+    Updater.cs ^
     AutoTuner.cs ^
     MainWindow.cs ^
     OnboardingWindow.cs

@@ -92,6 +92,24 @@ Sonuç `bin/config.ini` dosyasına yazılır. Ağ değiştirdiğinde tekrar çal
 
 **Varsayılanların kapsamadığı bir ağdaysan:** yerleşik test listesi birkaç bölgede yaygın olarak engellenen servisleri kapsar ama her şeyi kapsayamaz. EasyDPI "engelleme yok" derken ihtiyacın olan bir site hâlâ açılmıyorsa, o siteyi `bin/config.ini` içindeki `probeDomains` satırına ekleyip tekrar çalıştır.
 
+## Günlük sekmesi
+
+Uygulamanın yaptığı her şey olurken günlüğe yazılıyor ve çalıştırmalar arasında `easydpi.log` dosyasında saklanıyor; pencereyi bir dahaki açışında geçmiş yerinde duruyor.
+
+Altında iki buton var.
+
+**Rapor İndir**, tek bir dosyaya şunları yazar: günlük, ayarların, iki servisin ve paket sürücüsünün durumu, adaptörünün ayarlı olduğu DNS sunucuları ve paketle gelen dosyalardan hangilerinin yerinde olduğu. Bir sorunu bildirmek soru-cevap faslı yerine tek tık olsun diye var — dosyayı issue'ya ekle yeter. Dosya kendi başlığında ne içerdiğini yazıyor ve girdiğin sitelere dair hiçbir şey içermiyor.
+
+**Uygulamayı Sil**, her şeyi tek adımda kaldırır: iki servis de durdurulup kaydı silinir, WinDivert sürücüsünün kaydı kaldırılır, DNS ağına geri verilir ve uygulamanın kendi dosyaları silinir. Yalnız EasyDPI'ın kurduğu dosyalar silinir — o klasörde tuttuğun başka her şey yerinde kalır, klasörün kendisi de ancak içi boşaldıysa kaldırılır.
+
+## Güncellemeler
+
+Pencere açıldığında EasyDPI, GitHub'a daha yeni bir sürüm olup olmadığını sorar. Varsa bunu sürüm başına bir kez söyler ve kurmayı önerir: arşiv indirilir, o dosya için yayınlanan SHA-256 ile karşılaştırılır ve ancak ondan sonra kurulumunun üzerine açılır. `bin/config.ini` arşivin içinde olmadığı için ayarların yerinde kalır. Koruma açıksa sonrasında geri açılır ve uygulama yeni sürümle yeniden başlar.
+
+Sağlaması tutmayan arşiv hiç açılmadan silinir; doğrulanmış kopya yerine konana kadar kurulumundaki hiçbir şeye dokunulmaz. Bir sürüm otomatik olarak doğrulanamıyorsa EasyDPI hiçbir şey kurmaz, bunun yerine indirme sayfasını açmayı önerir.
+
+Kontrolü tamamen kapatmak için `bin/config.ini` içine `updateCheck=0` yaz.
+
 ## Diller
 
 İngilizce, Türkçe ve Rusça. Windows dilinden otomatik seçilir; kurulum sırasında veya `bin/config.ini` içindeki `language=` ile değiştirilebilir.
@@ -119,7 +137,7 @@ Bu EasyDPI'a özel değil. SmartScreen, henüz indirme itibarı oluşmamış her
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.1.1.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.0.zip -Algorithm SHA256
 ```
 
 ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.

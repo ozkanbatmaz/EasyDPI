@@ -92,6 +92,24 @@ The result is written to `bin/config.ini`. Run it again whenever you change netw
 
 **On a network the defaults do not cover:** the built-in probe list covers commonly blocked services across several regions, but it cannot cover everything. If EasyDPI reports no blocking while a site you need is still unreachable, add that site to `probeDomains` in `bin/config.ini` and run the tuner again.
 
+## The log tab
+
+Everything the application does is written to the log as it happens, and kept in `easydpi.log` between runs so it is still there the next time you open the window.
+
+Two buttons sit under it.
+
+**Save report** writes one file holding the log, your settings, the state of both services and the packet driver, the DNS servers your adapter is set to, and which of the shipped files are present. It exists so that reporting a problem is one click instead of an interview — attach it to an issue. The file states in its own header what it contains, and it contains nothing about the sites you visit.
+
+**Remove EasyDPI** uninstalls everything in one step: both services stopped and unregistered, the WinDivert driver unregistered, DNS handed back to your network, and the application's own files deleted. Only files EasyDPI installed are removed — anything else you keep in that folder is left alone, and the folder itself goes only if nothing remains in it.
+
+## Updates
+
+When the window opens, EasyDPI asks GitHub whether a newer release exists. If there is one it says so, once per release, and offers to install it: the archive is downloaded, checked against the SHA-256 published for it, and only then unpacked over your installation. Your `bin/config.ini` is not in the archive, so your settings survive. Protection is restored afterwards if it was on, and the application restarts into the new version.
+
+An archive that fails its checksum is deleted without being opened, and nothing in your installation is touched until the moment the verified copy is put in place. If a release cannot be verified automatically, EasyDPI offers to open its download page instead of installing anything.
+
+Set `updateCheck=0` in `bin/config.ini` to turn the check off entirely.
+
 ## Languages
 
 English, Turkish and Russian, selected automatically from your Windows language and changeable during setup or via `language=` in `bin/config.ini`.
@@ -119,7 +137,7 @@ This is not specific to EasyDPI. SmartScreen shows the same warning for every un
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.1.1.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.0.zip -Algorithm SHA256
 ```
 
 and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.

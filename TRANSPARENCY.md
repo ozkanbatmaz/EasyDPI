@@ -14,7 +14,7 @@ Last verified: 10 August 2026, against EasyDPI 1.0.0.
 | Windows service `dnscrypt-proxy` | Created pointing at `dns\dnscrypt-proxy.exe`, start type Automatic |
 | Kernel driver | `WinDivert64.sys` is loaded by GoodbyeDPI to inspect and reshape outgoing packets |
 | DNS settings | The active adapter's DNS is set to `127.0.0.1` and `::1`, so lookups go to the local encrypted resolver |
-| Files written | `bin\config.ini` (your settings), `easydpi.log` (only in command line mode), `dns\*.md` (resolver list cache) |
+| Files written | `bin\config.ini` (your settings), `easydpi.log` (the activity log, kept between runs and trimmed at 1 MB), `dns\*.md` (resolver list cache) |
 
 Turning protection off reverses all of it: both services are stopped **and
 disabled**, and DNS is handed back to DHCP. Nothing is left running or set to
@@ -23,6 +23,21 @@ start again.
 The services point at wherever the application folder is. If you move or delete
 that folder, turn protection off first, or the services will point at files that
 are no longer there.
+
+**Save report**, next to it, writes a diagnostic file wherever you choose: the
+activity log, the contents of `config.ini`, the state of the two services and the
+driver, which DNS servers the adapter is set to, and which of the shipped files
+are present. It is meant to be attached to a bug report, so the file says in its
+own header what it holds — and what it does not, which is anything about the sites
+you visit. Nothing is sent anywhere; the file is yours to look at and to share or
+not.
+
+**Remove EasyDPI**, on the log tab, does the whole thing in one step: it stops and
+unregisters both services, unregisters the WinDivert packet driver, hands DNS back
+to the network, and then deletes the application's own files. Only files EasyDPI
+installed are deleted — the folders it shipped and the files it wrote. Anything
+else in that folder is left where it is, and the folder itself is removed only if
+nothing remains in it.
 
 ## What leaves your machine
 
@@ -41,9 +56,24 @@ are no longer there.
   the only traffic EasyDPI generates that is not a probe, and it happens nowhere
   except in that last step of the tuner.
 
-That is the entire list. No telemetry, no analytics, no update check, no
-crash reporting, no identifiers. The source is in [`src/`](src/) and the network
-calls are all in [`src/NetworkTools.cs`](src/NetworkTools.cs).
+**EasyDPI itself**, once when the window opens:
+
+- One request to `api.github.com` asking which release is newest. It carries no
+  version number and no identifier — the request says nothing except that somebody
+  asked — and a failure is silent, because an unreachable GitHub is the normal
+  state of affairs on a blocked network.
+- If you accept the update it then downloads that release's archive from GitHub.
+  The archive is checked against the SHA-256 the API publishes for it, and an
+  archive that does not match is deleted without being opened. There is no path
+  that installs an unverified download.
+- Set `updateCheck=0` in `bin\config.ini` to switch this off. With it off, EasyDPI
+  makes no network calls at all outside the tuner.
+
+That is the entire list. No telemetry, no analytics, no crash reporting, no
+identifiers, and nothing is ever uploaded — every request above only fetches.
+The source is in [`src/`](src/); the network calls live in
+[`src/NetworkTools.cs`](src/NetworkTools.cs), [`src/UpdateCheck.cs`](src/UpdateCheck.cs)
+and [`src/Updater.cs`](src/Updater.cs).
 
 **dnscrypt-proxy**, while protection is on:
 
@@ -79,7 +109,7 @@ and comparing hashes:
 | `bin\WinDivert.dll` | bundled in the GoodbyeDPI archive | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | yes |
 | `bin\WinDivert64.sys` | bundled in the GoodbyeDPI archive | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | yes |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | yes |
-| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `B0B0DAE6E19A518D2BECE0785AA90893E6A3AE3DF5003B9F43997A37AB18C4D7` | — |
+| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `3B993F4AD26678AF53AD730E1DD6B982E98CDB90F6CB5CCFBC5C5CB54D710D29` | — |
 
 The archive also carries `dns\public-resolvers.md` and `dns\relays.md` with
 their `.minisig` signatures. These are the DNSCrypt project's public server list,

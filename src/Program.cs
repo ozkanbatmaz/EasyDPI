@@ -65,7 +65,9 @@ namespace EasyDPI
 
         static void RunHeadless(string flag)
         {
-            StreamWriter log = new StreamWriter(AppPaths.LogFile, false, new UTF8Encoding(false));
+            // Append: the log is history now, and a scheduled /auto run should not wipe
+            // what the window recorded before it.
+            StreamWriter log = new StreamWriter(AppPaths.LogFile, true, new UTF8Encoding(false));
             log.AutoFlush = true;
 
             Action<string> report = delegate(string message)

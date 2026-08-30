@@ -63,6 +63,27 @@ namespace EasyDPI
             return false;
         }
 
+        /// <summary>
+        /// Whether a name is registered as either a service or a driver.
+        ///
+        /// WinDivert is a kernel driver, and ServiceController.GetServices() lists only
+        /// Win32 services — never a driver — so the plain check reports a loaded driver
+        /// as "not installed". Drivers live in a separate list.
+        /// </summary>
+        public static bool ExistsIncludingDrivers(string serviceName)
+        {
+            if (Exists(serviceName)) return true;
+
+            try
+            {
+                foreach (ServiceController device in ServiceController.GetDevices())
+                    if (string.Equals(device.ServiceName, serviceName, StringComparison.OrdinalIgnoreCase))
+                        return true;
+            }
+            catch { }
+            return false;
+        }
+
         /// <summary>Localized, human readable state for the details panel.</summary>
         public static string DescribeState(string serviceName)
         {

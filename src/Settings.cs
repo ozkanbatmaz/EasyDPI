@@ -5,6 +5,12 @@ using System.Text;
 
 namespace EasyDPI
 {
+    /// <summary>Identity of this build. Reported in diagnostics so a bug report says which one it is.</summary>
+    static class AppInfo
+    {
+        public const string Version = "1.2.0";
+    }
+
     /// <summary>
     /// Every path is derived from the folder EasyDPI.exe lives in, so the whole
     /// application stays portable — copy the folder anywhere and it still works.
@@ -49,6 +55,18 @@ namespace EasyDPI
         /// </summary>
         public static List<string> CustomProbeDomains = new List<string>();
 
+        /// <summary>
+        /// Whether to ask GitHub about newer releases on startup. Turning this off leaves
+        /// the application making no network calls of its own.
+        /// </summary>
+        public static bool CheckForUpdates = true;
+
+        /// <summary>
+        /// The newest version the user has already been told about, so the prompt appears
+        /// once per release rather than at every launch.
+        /// </summary>
+        public static string UpdateNotifiedVersion = "";
+
         /// <summary>True when no configuration exists yet, i.e. this is the first launch.</summary>
         public static bool IsFirstRun { get { return !File.Exists(AppPaths.ConfigFile); } }
 
@@ -73,6 +91,8 @@ namespace EasyDPI
                     else if (key == "encrypteddns") UseEncryptedDns = IsTruthy(value);
                     else if (key == "language" && value.Length > 0) Language = value;
                     else if (key == "probedomains") CustomProbeDomains = SplitDomains(value);
+                    else if (key == "updatecheck") CheckForUpdates = IsTruthy(value);
+                    else if (key == "updatenotified") UpdateNotifiedVersion = value;
                 }
             }
             catch { }
@@ -99,6 +119,14 @@ namespace EasyDPI
                 text.AppendLine("# Leave empty to use the built-in list. Add the sites you actually need,");
                 text.AppendLine("# for example: probeDomains=example.com, another.org");
                 text.AppendLine("probeDomains=" + string.Join(", ", CustomProbeDomains.ToArray()));
+                text.AppendLine();
+                text.AppendLine("# 1 = check GitHub for a newer release when the window opens, 0 = never.");
+                text.AppendLine("# With this off, EasyDPI makes no network calls of its own.");
+                text.AppendLine("updateCheck=" + (CheckForUpdates ? "1" : "0"));
+                text.AppendLine();
+                text.AppendLine("# The release you were last told about. Cleared by hand if you want the");
+                text.AppendLine("# notice again.");
+                text.AppendLine("updateNotified=" + UpdateNotifiedVersion);
 
                 string folder = Path.GetDirectoryName(AppPaths.ConfigFile);
                 if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);

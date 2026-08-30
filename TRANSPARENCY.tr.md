@@ -15,7 +15,7 @@ Son doğrulama: 10 Ağustos 2026, EasyDPI 1.0.0 üzerinde.
 | `dnscrypt-proxy` Windows servisi | `dns\dnscrypt-proxy.exe`'yi gösterecek şekilde kurulur, başlangıç türü Otomatik |
 | Çekirdek sürücüsü | `WinDivert64.sys`, giden paketleri inceleyip yeniden biçimlendirmek için GoodbyeDPI tarafından yüklenir |
 | DNS ayarları | Aktif adaptörün DNS'i `127.0.0.1` ve `::1` yapılır, sorgular yerel şifreli çözümleyiciye gider |
-| Yazılan dosyalar | `bin\config.ini` (ayarların), `easydpi.log` (yalnızca komut satırı modunda), `dns\*.md` (çözümleyici listesi önbelleği) |
+| Yazılan dosyalar | `bin\config.ini` (ayarların), `easydpi.log` (etkinlik günlüğü; çalıştırmalar arasında saklanır, 1 MB'ta kırpılır), `dns\*.md` (çözümleyici listesi önbelleği) |
 
 Korumayı kapatmak bunların hepsini geri alır: iki servis de durdurulur **ve
 devre dışı bırakılır**, DNS DHCP'ye döner. Arkada çalışan veya yeniden
@@ -24,6 +24,20 @@ başlamaya ayarlı hiçbir şey kalmaz.
 Servisler uygulama klasörünün bulunduğu yeri gösterir. Klasörü taşır veya
 silersen önce korumayı kapat; yoksa servisler artık var olmayan dosyaları
 göstermeye devam eder.
+
+Yanındaki **Rapor İndir**, seçtiğin yere bir tanılama dosyası yazar: etkinlik
+günlüğü, `config.ini` içeriği, iki servisin ve sürücünün durumu, adaptörün hangi
+DNS sunucularına ayarlı olduğu ve paketle gelen dosyalardan hangilerinin yerinde
+olduğu. Hata bildirimine eklenmek için var, o yüzden dosya kendi başlığında ne
+içerdiğini — ve girdiğin sitelere dair hiçbir şey içermediğini — yazıyor. Hiçbir
+yere gönderilmez; dosya senindir, bakarsın, istersen paylaşırsın.
+
+Günlük sekmesindeki **Uygulamayı Sil**, bunların hepsini tek adımda yapar: iki
+servisi de durdurup kaydını siler, WinDivert paket sürücüsünün kaydını kaldırır,
+DNS'i ağa geri verir, sonra uygulamanın kendi dosyalarını siler. Yalnızca
+EasyDPI'ın kurduğu şeyler silinir — getirdiği klasörler ve yazdığı dosyalar. O
+klasördeki başka hiçbir şeye dokunulmaz; klasörün kendisi de ancak içinde bir şey
+kalmadıysa kaldırılır.
 
 ## Makinenden ne çıkıyor
 
@@ -42,9 +56,23 @@ göstermeye devam eder.
   test isteği olmayan tek trafik budur ve ayar bulucunun yalnızca o son adımında
   olur.
 
-Listenin tamamı bu. Telemetri yok, analitik yok, güncelleme kontrolü yok, çökme
-raporu yok, tanımlayıcı yok. Kaynak [`src/`](src/) altında; ağa çıkan her çağrı
-[`src/NetworkTools.cs`](src/NetworkTools.cs) içinde.
+**EasyDPI'ın kendisi**, pencere açılırken bir kez:
+
+- `api.github.com` adresine, en yeni sürümün hangisi olduğunu soran tek bir istek.
+  İçinde sürüm numarası da tanımlayıcı da yok — istek, birinin sorduğundan başka
+  hiçbir şey söylemiyor — ve başarısız olursa sessizce geçiliyor; çünkü engelli bir
+  ağda GitHub'a ulaşamamak olağan durum.
+- Güncellemeyi kabul edersen o sürümün arşivini GitHub'dan indirir. Arşiv, API'nin
+  o dosya için yayınladığı SHA-256 ile karşılaştırılır; tutmayan arşiv hiç açılmadan
+  silinir. Doğrulanmamış bir indirmeyi kuran hiçbir yol yok.
+- Bunu kapatmak için `bin\config.ini` içine `updateCheck=0` yaz. Kapalıyken EasyDPI,
+  ayar bulucunun dışında hiçbir ağ çağrısı yapmaz.
+
+Listenin tamamı bu. Telemetri yok, analitik yok, çökme raporu yok, tanımlayıcı yok
+ve hiçbir şey yüklenmiyor — yukarıdaki isteklerin hepsi yalnızca veri çekiyor.
+Kaynak [`src/`](src/) altında; ağa çıkan çağrılar
+[`src/NetworkTools.cs`](src/NetworkTools.cs), [`src/UpdateCheck.cs`](src/UpdateCheck.cs)
+ve [`src/Updater.cs`](src/Updater.cs) içinde.
 
 **dnscrypt-proxy**, koruma açıkken:
 
@@ -82,7 +110,7 @@ sağlama toplamlarını karşılaştırdım:
 | `bin\WinDivert.dll` | GoodbyeDPI arşivinin içinde | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | evet |
 | `bin\WinDivert64.sys` | GoodbyeDPI arşivinin içinde | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | evet |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | evet |
-| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `B0B0DAE6E19A518D2BECE0785AA90893E6A3AE3DF5003B9F43997A37AB18C4D7` | — |
+| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `3B993F4AD26678AF53AD730E1DD6B982E98CDB90F6CB5CCFBC5C5CB54D710D29` | — |
 
 Arşivde ayrıca `dns\public-resolvers.md` ve `dns\relays.md` dosyaları,
 `.minisig` imzalarıyla birlikte geliyor. Bunlar DNSCrypt projesinin açık sunucu

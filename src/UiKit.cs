@@ -28,6 +28,12 @@ namespace EasyDPI
         public static readonly Color Success = Color.FromArgb(22, 163, 74);
         public static readonly Color SuccessTint = Color.FromArgb(236, 253, 243);
 
+        // Reserved for actions that cannot be undone. Muted on purpose: a destructive
+        // control should be recognisable without competing with the primary button.
+        public static readonly Color Danger = Color.FromArgb(190, 40, 40);
+        public static readonly Color DangerTint = Color.FromArgb(254, 243, 243);
+        public static readonly Color DangerBorder = Color.FromArgb(246, 205, 205);
+
         public static readonly Color HeroFrom = Color.FromArgb(246, 250, 255);
         public static readonly Color HeroTo = Color.FromArgb(232, 240, 253);
 
@@ -155,7 +161,7 @@ namespace EasyDPI
     /// </summary>
     public class IconButton : Control
     {
-        public enum Style { Filled, Outline, Ghost }
+        public enum Style { Filled, Outline, Ghost, Danger }
 
         public Style Appearance = Style.Filled;
         public Image Icon;
@@ -212,6 +218,15 @@ namespace EasyDPI
                 using (Pen pen = new Pen(UiTheme.Border))
                     g.DrawPath(pen, p);
                 textColour = Enabled ? UiTheme.TextPrimary : UiTheme.TextMuted;
+            }
+            else if (Appearance == Style.Danger)
+            {
+                Color fill = hovered ? UiTheme.DangerTint : UiTheme.Surface;
+                UiTheme.FillRounded(g, r, Radius, fill);
+                using (GraphicsPath p = UiTheme.Rounded(r, Radius))
+                using (Pen pen = new Pen(UiTheme.DangerBorder))
+                    g.DrawPath(pen, p);
+                textColour = Enabled ? UiTheme.Danger : UiTheme.TextMuted;
             }
             else
             {

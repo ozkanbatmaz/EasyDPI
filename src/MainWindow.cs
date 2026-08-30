@@ -24,6 +24,7 @@ namespace EasyDPI
         const int WindowHeight = ContentTop + 700;
         const int TabBarHeight = 62;
         const int SideMargin = 24;
+        const int UninstallStripHeight = 50;   // the strip under the log that holds "remove"
 
         TabBar tabBar;
         StatusPane statusPane;
@@ -31,6 +32,8 @@ namespace EasyDPI
         CardPanel logCard;
 
         IconButton toggleButton;
+        IconButton uninstallButton;
+        IconButton reportButton;
         LinkText autoTuneLink;
         TextBox activityLog;
 
@@ -125,7 +128,8 @@ namespace EasyDPI
         {
             logCard = new CardPanel();
             logCard.Location = new Point(SideMargin, ContentTop + TabBarHeight + 18);
-            logCard.Size = new Size(WindowWidth - SideMargin * 2, WindowHeight - ContentTop - TabBarHeight - 18 - 24);
+            logCard.Size = new Size(WindowWidth - SideMargin * 2,
+                                    WindowHeight - ContentTop - TabBarHeight - 18 - 24 - UninstallStripHeight);
             logCard.Radius = 14f;
             logCard.Visible = false;
             Controls.Add(logCard);
@@ -141,6 +145,33 @@ namespace EasyDPI
             activityLog.Font = new Font("Consolas", 8.5f);
             activityLog.BorderStyle = BorderStyle.None;
             logCard.Controls.Add(activityLog);
+
+            // Bottom right of the log tab, away from everything else. Removing the
+            // application is not part of using it, and the control should not sit
+            // anywhere a mis-click could reach.
+            // Left of the strip, as far from the removal button as the width allows.
+            reportButton = new IconButton();
+            reportButton.Size = new Size(158, 36);
+            reportButton.Location = new Point(SideMargin, logCard.Bottom + 14);
+            reportButton.Appearance = IconButton.Style.Outline;
+            reportButton.Radius = 11f;
+            reportButton.Font = UiTheme.Semibold(10f);
+            reportButton.Text = Strings.Get("button.saveReport");
+            reportButton.Visible = false;
+            reportButton.Click += new EventHandler(OnSaveReportClicked);
+            Controls.Add(reportButton);
+
+            uninstallButton = new IconButton();
+            uninstallButton.Size = new Size(158, 36);
+            uninstallButton.Location = new Point(SideMargin + logCard.Width - 158,
+                                                 logCard.Bottom + 14);
+            uninstallButton.Appearance = IconButton.Style.Danger;
+            uninstallButton.Radius = 11f;
+            uninstallButton.Font = UiTheme.Semibold(10f);
+            uninstallButton.Text = Strings.Get("button.uninstall");
+            uninstallButton.Visible = false;
+            uninstallButton.Click += new EventHandler(OnUninstallClicked);
+            Controls.Add(uninstallButton);
         }
 
         void ShowTab(int index)
@@ -148,6 +179,8 @@ namespace EasyDPI
             statusPane.Visible = (index == 0);
             details.Visible = (index == 0);
             logCard.Visible = (index == 1);
+            uninstallButton.Visible = (index == 1);
+            reportButton.Visible = (index == 1);
         }
 
         // ------------------------------------------------------------------
@@ -161,11 +194,93 @@ namespace EasyDPI
 
             UpdateDisplay();
 
+            if (Settings.CheckForUpdates)
+                UpdateCheck.InBackground(delegate(UpdateCheck.Release release)
+                {
+                    try { Invoke(new Action<UpdateCheck.Release>(OnNewerVersionFound), new object[] { release }); }
+                    catch { }   // the window may already be closing
+                });
+
             if (TuneOnStartup)
             {
                 TuneOnStartup = false;
                 StartAutoTune();
             }
+        }
+
+        /// <summary>
+        /// Tells the user once per release, not once per launch. A notice that reappears
+        /// every time teaches people to dismiss it without reading, which is the opposite
+        /// of what it is for.
+        /// </summary>
+        void OnNewerVersionFound(UpdateCheck.Release release)
+        {
+            Report(Strings.Get("update.available", release.Version));
+
+            if (Settings.UpdateNotifiedVersion == release.Version) return;
+            Settings.UpdateNotifiedVersion = release.Version;
+
+            // Never create config.ini just to record this: its absence is what marks a
+            // first run, and writing one here would skip the introduction next time.
+            if (File.Exists(AppPaths.ConfigFile)) Settings.Save();
+
+            // An update that cannot be verified is not offered as an install. The page
+            // is offered instead, so the person can look at it and decide for themselves.
+            string question = release.CanInstall
+                ? Strings.Get("update.prompt", release.Version, AppInfo.Version)
+                : Strings.Get("update.promptManual", release.Version, AppInfo.Version);
+
+            DialogResult answer = MessageBox.Show(this, question,
+                Strings.Get("update.title"),
+                MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+
+            if (answer != DialogResult.Yes) return;
+
+            if (!release.CanInstall)
+            {
+                try { Process.Start(release.PageUrl); }
+                catch (Exception error) { Report(Strings.Get("log.error", error.Message)); }
+                return;
+            }
+
+            StartUpdate(release);
+        }
+
+        /// <summary>
+        /// Downloads and verifies the new version, then closes so the files can be
+        /// replaced. Everything up to the swap is reversible: a failure at any point
+        /// leaves the installation untouched and the application running.
+        /// </summary>
+        void StartUpdate(UpdateCheck.Release release)
+        {
+            tabBar.SelectedIndex = 1;   // the log is where the progress shows
+            SetWorking(true, Strings.Get("button.updating"));
+
+            bool wasProtected = BypassController.IsActive;
+
+            RunInBackground(delegate
+            {
+                string staged = Updater.Stage(release, Report);
+                if (staged == null) return;   // Stage reported why, and changed nothing
+
+                if (!Updater.ScheduleSwap(staged, wasProtected))
+                {
+                    Report(Strings.Get("update.swapFailed"));
+                    return;
+                }
+
+                Report(Strings.Get("update.restarting"));
+                try { BeginInvoke(new Action(CloseForUpdate)); }
+                catch { Application.Exit(); }
+            });
+        }
+
+        void CloseForUpdate()
+        {
+            refreshTimer.Stop();
+            Application.DoEvents();
+            Thread.Sleep(1200);
+            Application.Exit();
         }
 
         void OnRefreshTick(object sender, EventArgs e) { UpdateDisplay(); }
@@ -211,7 +326,9 @@ namespace EasyDPI
                 return;
             }
 
-            activityLog.AppendText(DateTime.Now.ToString("HH:mm:ss") + "  " + message + Environment.NewLine);
+            string stamped = DateTime.Now.ToString("HH:mm:ss") + "  " + message;
+            activityLog.AppendText(stamped + Environment.NewLine);
+            ActivityLog.Append(stamped);
 
             // Blank lines are spacing in the log, not something worth surfacing elsewhere.
             if (message.Trim().Length > 0) lastActivity = message.Trim();
@@ -219,15 +336,20 @@ namespace EasyDPI
 
         void SetWorking(bool busy, string buttonText)
         {
+            if (IsDisposed || Disposing) return;
+
             if (InvokeRequired)
             {
-                Invoke(new Action<bool, string>(SetWorking), new object[] { busy, buttonText });
+                try { Invoke(new Action<bool, string>(SetWorking), new object[] { busy, buttonText }); }
+                catch { }   // the window can close while a background step is finishing
                 return;
             }
 
             working = busy;
             toggleButton.Enabled = !busy;
             autoTuneLink.Enabled = !busy;
+            uninstallButton.Enabled = !busy;
+            reportButton.Enabled = !busy;
 
             if (buttonText != null)
             {
@@ -297,6 +419,83 @@ namespace EasyDPI
             RunInBackground(delegate { AutoTuner.Run(Report); });
         }
 
+        /// <summary>
+        /// Writes everything a bug report needs to one file and shows the user where it
+        /// landed, so answering "what does your log say" is a matter of attaching it.
+        /// </summary>
+        void OnSaveReportClicked(object sender, EventArgs e)
+        {
+            using (SaveFileDialog dialog = new SaveFileDialog())
+            {
+                dialog.Title = Strings.Get("report.dialogTitle");
+                dialog.Filter = Strings.Get("report.fileType") + " (*.txt)|*.txt";
+                dialog.FileName = DiagnosticReport.SuggestedFileName();
+                dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+                if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+                try
+                {
+                    DiagnosticReport.Save(dialog.FileName, activityLog.Text);
+                    Report(Strings.Get("report.saved", dialog.FileName));
+                    RevealInExplorer(dialog.FileName);
+                }
+                catch (Exception error)
+                {
+                    Report(Strings.Get("report.failed", error.Message));
+                }
+            }
+        }
+
+        /// <summary>Opens the containing folder with the file already selected.</summary>
+        static void RevealInExplorer(string path)
+        {
+            try { Process.Start("explorer.exe", "/select,\"" + path + "\""); }
+            catch { }
+        }
+
+        /// <summary>
+        /// Asks once, plainly, and then removes everything. There is no undo and no
+        /// second dialog: a confirmation people have learned to click through twice
+        /// protects nobody, so the one prompt says exactly what is about to disappear.
+        /// </summary>
+        void OnUninstallClicked(object sender, EventArgs e)
+        {
+            if (working) return;
+
+            DialogResult answer = MessageBox.Show(this,
+                Strings.Get("uninstall.confirmBody", AppPaths.Root.TrimEnd(Path.DirectorySeparatorChar)),
+                Strings.Get("uninstall.confirmTitle"),
+                MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
+
+            if (answer != DialogResult.Yes) return;
+
+            tabBar.SelectedIndex = 1;   // so the removal can be watched as it happens
+            SetWorking(true, Strings.Get("button.uninstalling"));
+
+            RunInBackground(delegate
+            {
+                Uninstaller.Run(Report);
+
+                // The files go once this process releases them, so leaving the window
+                // open would only give the deletion something to fail against. Posting
+                // the close rather than waiting on it lets this worker finish first:
+                // the code that runs after it touches the window, and by then a
+                // synchronous Application.Exit would already have disposed it.
+                try { BeginInvoke(new Action(CloseAfterUninstall)); }
+                catch { Application.Exit(); }
+            });
+        }
+
+        void CloseAfterUninstall()
+        {
+            refreshTimer.Stop();
+            Report(Strings.Get("uninstall.closing"));
+            Application.DoEvents();
+            Thread.Sleep(1500);
+            Application.Exit();
+        }
+
         void OnSettingsClicked(object sender, EventArgs e)
         {
             PopupMenu menu = new PopupMenu();
@@ -324,6 +523,10 @@ namespace EasyDPI
             // The language may have changed while the introduction was open.
             tabBar.SetTabText(0, Strings.Get("tab.status"));
             tabBar.SetTabText(1, Strings.Get("tab.log"));
+            uninstallButton.Text = Strings.Get("button.uninstall");
+            uninstallButton.Invalidate();
+            reportButton.Text = Strings.Get("button.saveReport");
+            reportButton.Invalidate();
             UpdateDisplay();
 
             if (tune && !working) StartAutoTune();

@@ -134,10 +134,12 @@ EasyDPI is not code signed, so Microsoft Defender SmartScreen shows **"Windows p
 
 This is not specific to EasyDPI. SmartScreen shows the same warning for every unsigned executable that has not yet built up download reputation, and a signing certificate costs a few hundred dollars a year — hard to justify for a free tool.
 
+Antivirus software occasionally goes further and blocks the file outright, with a message about a virus or potentially unwanted software. That verdict comes from reputation and behaviour scoring rather than from a signature: EasyDPI is unsigned, newly published, installs services and loads a packet driver, which together describe a lot of malware and also describe this. If it happens to you, please [report it as a false positive to Microsoft](https://www.microsoft.com/en-us/wdsi/filesubmission) — that is what gets it fixed for everybody rather than only on your machine — and, if you want it working in the meantime, restore it from **Windows Security → Protection history**. Verify the checksum below first; the point of publishing it is that you do not have to take anyone's word for what you are running.
+
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.0.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.1.zip -Algorithm SHA256
 ```
 
 and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.

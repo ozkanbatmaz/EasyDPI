@@ -134,10 +134,12 @@ EasyDPI kod imzası taşımıyor, bu yüzden Microsoft Defender SmartScreen ilk 
 
 Bu EasyDPI'a özel değil. SmartScreen, henüz indirme itibarı oluşmamış her imzasız uygulamada aynı uyarıyı verir; imza sertifikası da yılda birkaç yüz dolar tutuyor ve ücretsiz bir araç için karşılığı yok.
 
+Antivirüs bazen bir adım öteye gidip dosyayı tamamen engelleyebiliyor: "virüs veya istenmeyen yazılım içeriyor" mesajı. Bu karar bir imzadan değil, itibar ve davranış puanlamasından geliyor: EasyDPI imzasız, yeni yayınlanmış, servis kuruyor ve paket sürücüsü yüklüyor — bunların toplamı birçok zararlıyı tarif ettiği gibi bunu da tarif ediyor. Başına gelirse lütfen [Microsoft'a yanlış pozitif olarak bildir](https://www.microsoft.com/en-us/wdsi/filesubmission); sorunu yalnız senin makinende değil herkes için çözen şey bu. O arada çalıştırmak istersen **Windows Güvenliği → Koruma geçmişi** üzerinden geri yükleyebilirsin. Önce aşağıdaki sağlama toplamını doğrula; onu yayınlamamızın sebebi tam olarak bu — ne çalıştırdığın konusunda kimsenin sözüne güvenmek zorunda kalma.
+
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.0.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.1.zip -Algorithm SHA256
 ```
 
 ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.

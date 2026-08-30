@@ -48,6 +48,7 @@ echo.
     /reference:System.ServiceProcess.dll ^
     /reference:System.IO.Compression.dll ^
     /reference:System.IO.Compression.FileSystem.dll ^
+    AssemblyInfo.cs ^
     Program.cs ^
     Strings.cs ^
     Settings.cs ^

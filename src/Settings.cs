@@ -8,7 +8,32 @@ namespace EasyDPI
     /// <summary>Identity of this build. Reported in diagnostics so a bug report says which one it is.</summary>
     static class AppInfo
     {
-        public const string Version = "1.2.0";
+        static string version;
+
+        /// <summary>
+        /// Read from the assembly rather than kept as a constant here, so that the number
+        /// in a diagnostic report is by construction the number in the file's properties.
+        /// Two places to edit is one place too many for something the update check
+        /// compares against.
+        /// </summary>
+        public static string Version
+        {
+            get
+            {
+                if (version != null) return version;
+
+                try
+                {
+                    System.Version assembly = System.Reflection.Assembly
+                        .GetExecutingAssembly().GetName().Version;
+
+                    version = assembly.Major + "." + assembly.Minor + "." + assembly.Build;
+                }
+                catch { version = "0.0.0"; }
+
+                return version;
+            }
+        }
     }
 
     /// <summary>

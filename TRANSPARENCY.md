@@ -109,7 +109,7 @@ and comparing hashes:
 | `bin\WinDivert.dll` | bundled in the GoodbyeDPI archive | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | yes |
 | `bin\WinDivert64.sys` | bundled in the GoodbyeDPI archive | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | yes |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | yes |
-| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `3B993F4AD26678AF53AD730E1DD6B982E98CDB90F6CB5CCFBC5C5CB54D710D29` | — |
+| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `CD74C409D88E1BBF5C616ACC9FB228BBDC9D32720864811E92AFCFCECD2694BA` | — |
 
 The archive also carries `dns\public-resolvers.md` and `dns\relays.md` with
 their `.minisig` signatures. These are the DNSCrypt project's public server list,

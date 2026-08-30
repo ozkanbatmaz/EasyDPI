@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace EasyDPI
@@ -126,6 +127,7 @@ namespace EasyDPI
             customTargets.Size = new Size(cardWidth - 32, 22);
             customTargets.Font = UiTheme.Regular(9.5f);
             customTargets.BorderStyle = BorderStyle.FixedSingle;
+            customTargets.HandleCreated += new EventHandler(delegate { ShowPlaceholder(customTargets); });
             customCard.Controls.Add(customTargets);
 
             customHint = new Label();
@@ -207,8 +209,17 @@ namespace EasyDPI
 
         void OnApplyClicked(object sender, EventArgs e)
         {
+            List<string> rejected;
+
             Settings.SelectedServices = services.Checked();
-            Settings.CustomTargets = SplitTargets(customTargets.Text);
+            Settings.CustomTargets = SplitTargets(customTargets.Text, out rejected);
+
+            // Written back into the box, so the person sees what was actually kept rather
+            // than wondering whether their pasted link counted.
+            customTargets.Text = string.Join(", ", Settings.CustomTargets.ToArray());
+
+            if (rejected.Count > 0 && Report != null)
+                Report(Strings.Get("advanced.rejected", string.Join(", ", rejected.ToArray())));
 
             if (Settings.SelectedServices.Count == 0 && Settings.CustomTargets.Count == 0)
             {
@@ -227,18 +238,109 @@ namespace EasyDPI
             if (Applied != null) Applied(this, EventArgs.Empty);
         }
 
-        static List<string> SplitTargets(string text)
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern IntPtr SendMessage(IntPtr window, int message, IntPtr parameter, string text);
+
+        /// <summary>
+        /// The grey example inside an empty box. Windows draws this itself; describing a
+        /// format in a hint underneath and leaving the box blank makes people guess.
+        /// </summary>
+        static void ShowPlaceholder(TextBox box)
+        {
+            const int SetCueBanner = 0x1501;
+            try { SendMessage(box.Handle, SetCueBanner, (IntPtr)1, Strings.Get("advanced.customExample")); }
+            catch { }
+        }
+
+        /// <summary>
+        /// Reads the addresses out of whatever the person typed.
+        ///
+        /// What belongs here is a host name — the part between the scheme and the first
+        /// slash — because that is what the engine reads out of the traffic and matches
+        /// against. What people actually type is whatever was in the address bar, so a
+        /// pasted "https://www.example.com/page?x=1" becomes "www.example.com" rather
+        /// than being stored verbatim and never matching anything: a silent failure,
+        /// indistinguishable from the feature not working.
+        ///
+        /// Entries that cannot be host names are dropped and named. An IP address is the
+        /// common one, and it can never match — the engine looks at the name inside the
+        /// connection, and a numeric address is not a name.
+        /// </summary>
+        static List<string> SplitTargets(string text, out List<string> rejected)
         {
             List<string> targets = new List<string>();
+            rejected = new List<string>();
 
-            foreach (string part in text.Split(new char[] { ',', ';', ' ', '\t' }))
+            foreach (string part in text.Split(new char[] { ',', ';', ' ', '\t', '\r', '\n' }))
             {
-                string target = part.Trim().ToLowerInvariant();
-                if (target.Length > 0 && target.Contains(".") && !targets.Contains(target))
-                    targets.Add(target);
+                string raw = part.Trim();
+                if (raw.Length == 0) continue;
+
+                string target = Normalise(raw);
+
+                if (target == null)
+                {
+                    if (!rejected.Contains(raw)) rejected.Add(raw);
+                    continue;
+                }
+
+                if (!targets.Contains(target)) targets.Add(target);
             }
 
             return targets;
+        }
+
+        static bool IsAscii(string value)
+        {
+            foreach (char character in value)
+                if (character > 127) return false;
+
+            return true;
+        }
+
+        /// <summary>Turns anything carrying a host name into that host name, or null.</summary>
+        static string Normalise(string entry)
+        {
+            string value = entry.Trim().ToLowerInvariant();
+
+            int scheme = value.IndexOf("://");
+            if (scheme >= 0) value = value.Substring(scheme + 3);
+
+            int slash = value.IndexOf('/');
+            if (slash >= 0) value = value.Substring(0, slash);
+
+            int at = value.IndexOf('@');            // an email address was pasted
+            if (at >= 0) value = value.Substring(at + 1);
+
+            int colon = value.IndexOf(':');         // a port
+            if (colon >= 0) value = value.Substring(0, colon);
+
+            value = value.Trim('.', ' ');
+
+            if (value.Length == 0 || value.IndexOf('.') < 0) return null;
+
+            System.Net.IPAddress address;
+            if (System.Net.IPAddress.TryParse(value, out address)) return null;
+
+            // A Turkish or Russian domain reaches the wire as punycode: the name inside
+            // the connection is xn--trke-3ra.com, never türkçe.com, so storing what was
+            // typed would store something that can never match. Converting is the whole
+            // difference between the entry working and silently doing nothing.
+            if (!IsAscii(value))
+            {
+                try { value = new System.Globalization.IdnMapping().GetAscii(value); }
+                catch { return null; }
+            }
+
+            foreach (char character in value)
+            {
+                bool allowed = (character >= 'a' && character <= 'z') ||
+                               (character >= '0' && character <= '9') ||
+                               character == '.' || character == '-' || character == '_';
+                if (!allowed) return null;
+            }
+
+            return value;
         }
 
         protected override void OnPaint(PaintEventArgs e)

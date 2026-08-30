@@ -255,7 +255,9 @@ namespace EasyDPI
             en["group.yours.name"] = "Your own list";
             en["group.yours.examples"] = "From probeDomains in config.ini";
             en["advanced.customTitle"] = "Addresses of your own";
-            en["advanced.customHint"] = "Separate with commas. Subdomains are covered too.";
+            en["advanced.customHint"] = "A site name, not a link. Subdomains are covered too.";
+            en["advanced.customExample"] = "reddit.com, ebay.de";
+            en["advanced.rejected"] = "Not usable as addresses, so they were left out: {0}";
             en["advanced.apply"] = "Apply";
             en["advanced.applied"] = "Coverage: {0} services, {1} addresses.";
             en["advanced.nothingChosen"] = "Nothing is ticked, so there would be nothing to cover. Choose a service or add an address.";
@@ -447,7 +449,9 @@ namespace EasyDPI
             tr["group.yours.name"] = "Kendi listen";
             tr["group.yours.examples"] = "config.ini içindeki probeDomains satırından";
             tr["advanced.customTitle"] = "Kendi adreslerin";
-            tr["advanced.customHint"] = "Virgülle ayır. Yazdığının alt alan adları da kapsama girer.";
+            tr["advanced.customHint"] = "Site adı yaz, bağlantı değil. Alt alan adları da kapsanır.";
+            tr["advanced.customExample"] = "reddit.com, ebay.de";
+            tr["advanced.rejected"] = "Adres olarak kullanılamadığı için alınmadı: {0}";
             tr["advanced.apply"] = "Uygula";
             tr["advanced.applied"] = "Kapsam: {0} servis, {1} adres.";
             tr["advanced.nothingChosen"] = "Hiçbir şey işaretli değil, kapsanacak bir şey kalmıyor. Bir servis seç ya da adres ekle.";
@@ -639,7 +643,9 @@ namespace EasyDPI
             ru["group.yours.name"] = "Ваш список";
             ru["group.yours.examples"] = "Из probeDomains в config.ini";
             ru["advanced.customTitle"] = "Ваши адреса";
-            ru["advanced.customHint"] = "Разделяйте запятыми. Поддомены введённого тоже покрываются.";
+            ru["advanced.customHint"] = "Имя сайта, не ссылка. Поддомены тоже покрываются.";
+            ru["advanced.customExample"] = "reddit.com, ebay.de";
+            ru["advanced.rejected"] = "Не годятся как адреса, поэтому пропущены: {0}";
             ru["advanced.apply"] = "Применить";
             ru["advanced.applied"] = "Охват: сервисов {0}, адресов {1}.";
             ru["advanced.nothingChosen"] = "Ничего не отмечено — покрывать нечего. Выберите сервис или добавьте адрес.";

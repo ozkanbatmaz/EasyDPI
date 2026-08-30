@@ -98,7 +98,7 @@ Atlatmanın nereye uygulanacağına **Gelişmiş** sekmesi karar veriyor. İki m
 
 **Otomatik**, makinenin kurduğu her bağlantıyı kapsar. Karar vermek gerekmez, hiçbir şey kaçmaz.
 
-**Kendim seçeyim**, motoru işaretlediğin servislerle sınırlar. Makinedeki diğer her şey — VPN, oyunlar, bankacılık uygulaması, hiç engellenmemiş her site — EasyDPI kapalıymış gibi geçer. Son ölçümde engelli bulunan servisler zaten işaretli gelir; uygulama senin bağlantında hangilerinin engelli olduğunu az önce çıkardı, bunu sana yeniden buldurmanın anlamı yok. Altına kendi adreslerini de ekleyebilirsin; yazdığının alt alan adları da kapsama girer.
+**Kendim seçeyim**, motoru işaretlediğin servislerle sınırlar. Makinedeki diğer her şey — VPN, oyunlar, bankacılık uygulaması, hiç engellenmemiş her site — EasyDPI kapalıymış gibi geçer. Son ölçümde engelli bulunan servisler zaten işaretli gelir; uygulama senin bağlantında hangilerinin engelli olduğunu az önce çıkardı, bunu sana yeniden buldurmanın anlamı yok. Altına kendi adreslerini de ekleyebilirsin. Bağlantı değil site adı yaz — `reddit.com`, `https://reddit.com/r/birsey` değil — ama yapıştırdığın bağlantı senin için site adına indirgenir; port, e-posta adresi ya da sondaki yol da öyle. Yazdığının alt alan adları da kapsanır, yani `reddit.com` aynı zamanda `www.reddit.com`'u da kapsar. IP adresi kabul edilmez: motor bağlantının içindeki **adı** eşleştiriyor, sayısal bir adres ise ad değil.
 
 Seçim `bin/config.ini` içinde `mode=` olarak, oluşan adres listesi de `bin/blacklist.txt` dosyasında saklanır.
 
@@ -163,7 +163,7 @@ Antivirüs bazen bir adım öteye gidip dosyayı tamamen engelleyebiliyor: "vir�
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.3.1.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.3.2.zip -Algorithm SHA256
 ```
 
 ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.

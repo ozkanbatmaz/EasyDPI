@@ -98,7 +98,7 @@ The **Advanced** tab decides where the bypass applies. It has two modes and auto
 
 **Automatic** covers every connection the machine makes. Nothing to decide, nothing missed.
 
-**Choose myself** narrows the engine to the services you tick. Everything else on the machine — a VPN, a game, a banking app, every site that was never blocked — travels exactly as it would with EasyDPI switched off. The services the last measurement found blocked arrive already ticked, since the application has just worked out which ones are blocked on your connection. You can add addresses of your own underneath; subdomains of what you enter are covered too.
+**Choose myself** narrows the engine to the services you tick. Everything else on the machine — a VPN, a game, a banking app, every site that was never blocked — travels exactly as it would with EasyDPI switched off. The services the last measurement found blocked arrive already ticked, since the application has just worked out which ones are blocked on your connection. You can add addresses of your own underneath. Write a site name rather than a link — `reddit.com`, not `https://reddit.com/r/something` — although a pasted link is trimmed down to its site name for you, as is a port, an email address or a trailing path. Subdomains of what you enter are covered too, so `reddit.com` also covers `www.reddit.com`. An IP address is not accepted: the engine matches the name inside the connection, and a numeric address is not a name.
 
 The choice is stored as `mode=` in `bin/config.ini` and the resulting address list is written to `bin/blacklist.txt`.
 
@@ -163,7 +163,7 @@ Antivirus software occasionally goes further and blocks the file outright, with 
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.3.1.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.3.2.zip -Algorithm SHA256
 ```
 
 and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.

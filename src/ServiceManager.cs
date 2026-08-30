@@ -114,6 +114,14 @@ namespace EasyDPI
         public static void Start(string serviceName) { ProcessRunner.Sc("start " + serviceName); }
         public static void Stop(string serviceName) { ProcessRunner.Sc("stop " + serviceName); }
 
+        /// <summary>
+        /// How long the resolver gets to come up. The old fifteen seconds were not
+        /// enough: dnscrypt-proxy waits for the network to look usable before it starts
+        /// serving, and on a first run it may also have to fetch its server list, so a
+        /// perfectly healthy start can take most of a minute.
+        /// </summary>
+        const int DnsStartTimeoutMs = 60000;
+
         /// <summary>dnscrypt-proxy registers its own service, so we only invoke it when missing.</summary>
         public static void EnsureDnsServiceInstalled()
         {
@@ -124,6 +132,85 @@ namespace EasyDPI
             ProcessRunner.Run(AppPaths.DnscryptExe,
                 "-config \"" + AppPaths.DnscryptConfig + "\" -service install",
                 out output, 60000);
+        }
+
+        /// <summary>
+        /// Brings the encrypted resolver up, and when it will not come up, says why.
+        ///
+        /// The reason matters more than it looks. Encrypted DNS is only switched on when
+        /// the provider has been caught returning forged addresses, so a resolver that
+        /// fails to start leaves every name on the machine resolving to whatever the
+        /// provider wants. Reporting "did not start" and carrying on — which is what this
+        /// used to do — sends the user off to blame the bypass settings for a problem
+        /// those settings cannot cause and cannot fix.
+        /// </summary>
+        public static bool TryStartDnsService(out string reason)
+        {
+            reason = null;
+
+            if (!File.Exists(AppPaths.DnscryptExe))
+            {
+                reason = Strings.Get("dnsfail.missingBinary");
+                return false;
+            }
+
+            EnsureDnsServiceInstalled();
+
+            if (!Exists(DnsService))
+            {
+                reason = Strings.Get("dnsfail.notInstalled");
+                return false;
+            }
+
+            SetStartupAutomatic(DnsService);
+
+            string output;
+            ProcessRunner.Run("sc.exe", "start " + DnsService, out output, 30000);
+
+            if (WaitFor(DnsService, ServiceControllerStatus.Running, DnsStartTimeoutMs) && IsRunning(DnsService))
+                return true;
+
+            // The most common cause by far is something else already holding the DNS
+            // port — a second resolver, a filtering tool, or Internet Connection Sharing.
+            string occupant = DescribeDnsPortOwner();
+            reason = occupant != null
+                ? Strings.Get("dnsfail.portTaken", occupant)
+                : Strings.Get("dnsfail.didNotStart");
+            return false;
+        }
+
+        /// <summary>
+        /// Names the process listening on the DNS port, if it is not ours. Returns null
+        /// when the port is free, which means the resolver failed for another reason.
+        /// </summary>
+        public static string DescribeDnsPortOwner()
+        {
+            try
+            {
+                string output;
+                ProcessRunner.Run("netstat.exe", "-a -n -o -p UDP", out output, 15000);
+
+                foreach (string line in output.Split('\n'))
+                {
+                    string[] parts = line.Trim().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length < 3) continue;
+                    if (!parts[1].EndsWith(":53")) continue;
+
+                    int processId;
+                    if (!int.TryParse(parts[parts.Length - 1], out processId)) continue;
+
+                    try
+                    {
+                        Process owner = Process.GetProcessById(processId);
+                        if (string.Equals(owner.ProcessName, "dnscrypt-proxy", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        return owner.ProcessName + " (PID " + processId + ")";
+                    }
+                    catch { return "PID " + processId; }
+                }
+            }
+            catch { }
+            return null;
         }
 
         /// <summary>

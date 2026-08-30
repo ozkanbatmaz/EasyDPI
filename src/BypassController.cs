@@ -35,16 +35,8 @@ namespace EasyDPI
             // Layer 1 — encrypted DNS
             if (Settings.UseEncryptedDns)
             {
-                ServiceManager.EnsureDnsServiceInstalled();
-
-                if (ServiceManager.Exists(ServiceManager.DnsService))
-                {
-                    ServiceManager.SetStartupAutomatic(ServiceManager.DnsService);
-                    ServiceManager.Start(ServiceManager.DnsService);
-                    ServiceManager.WaitFor(ServiceManager.DnsService, ServiceControllerStatus.Running, 15000);
-                }
-
-                if (ServiceManager.IsRunning(ServiceManager.DnsService))
+                string reason;
+                if (ServiceManager.TryStartDnsService(out reason))
                 {
                     NetworkTools.PointDnsToLocalhost();
                     report(Strings.Get("log.encryptedDnsActive"));
@@ -54,6 +46,10 @@ namespace EasyDPI
                     // Deliberately leave DNS alone here. Pointing it at a resolver that
                     // is not running would take the user's name resolution down entirely.
                     report(Strings.Get("log.dnsServiceFailed"));
+                    report("   " + reason);
+                    // Without it the provider's forged answers stand, and no amount of
+                    // packet reshaping reaches a site whose address is already wrong.
+                    report(Strings.Get("log.dnsFailedConsequence"));
                 }
             }
             else

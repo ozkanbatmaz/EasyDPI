@@ -433,18 +433,26 @@ namespace EasyDPI
             if (Settings.UseEncryptedDns)
             {
                 report(Strings.Get("tune.dnsTamperedResult"));
-                ServiceManager.EnsureDnsServiceInstalled();
 
-                if (ServiceManager.Exists(ServiceManager.DnsService))
+                string reason;
+                if (ServiceManager.TryStartDnsService(out reason))
                 {
-                    ServiceManager.SetStartupAutomatic(ServiceManager.DnsService);
-                    ServiceManager.Start(ServiceManager.DnsService);
-                    ServiceManager.WaitFor(ServiceManager.DnsService, ServiceControllerStatus.Running, 15000);
-
-                    if (ServiceManager.IsRunning(ServiceManager.DnsService)) NetworkTools.PointDnsToLocalhost();
-                    else report(Strings.Get("tune.warnDnsStart"));
+                    NetworkTools.PointDnsToLocalhost();
                 }
-                else report(Strings.Get("tune.warnDnsMissing"));
+                else
+                {
+                    // Stop here rather than measure through a resolver that is known to
+                    // be lying. Every name would resolve to the provider's address, every
+                    // probe would fail, and the search would pick whichever setting failed
+                    // most gracefully — a confident answer built on nothing. The earlier
+                    // version carried on and did exactly that.
+                    report(Strings.Get("tune.warnDnsStart"));
+                    report("   " + reason);
+                    report("");
+                    report(Strings.Get("tune.dnsAbort"));
+                    report(Strings.Get("tune.dnsAbortHint"));
+                    return;
+                }
             }
             else report(Strings.Get("tune.dnsCleanResult"));
 

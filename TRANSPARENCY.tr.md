@@ -82,7 +82,17 @@ sağlama toplamlarını karşılaştırdım:
 | `bin\WinDivert.dll` | GoodbyeDPI arşivinin içinde | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | evet |
 | `bin\WinDivert64.sys` | GoodbyeDPI arşivinin içinde | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | evet |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | evet |
-| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `C9BDC6DBB1A276C430FA326162AA9DD186B16DB99BFE3BACD85FF8A1E8ADD8CD` | — |
+| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `B0B0DAE6E19A518D2BECE0785AA90893E6A3AE3DF5003B9F43997A37AB18C4D7` | — |
+
+Arşivde ayrıca `dns\public-resolvers.md` ve `dns\relays.md` dosyaları,
+`.minisig` imzalarıyla birlikte geliyor. Bunlar DNSCrypt projesinin açık sunucu
+listesi; projenin minisign anahtarıyla imzalı ve dnscrypt-proxy kullanmadan önce
+o imzayı doğruluyor. İlk açılışta indirilmek yerine paketle gelmelerinin belirli
+bir sebebi var: indirmek için bir adresi sağlayıcının düz DNS'i üzerinden çözmek
+gerekiyor ve şifreli DNS'e ihtiyaç duyulan ağlarda sahte cevabı veren zaten o.
+Liste olmadan çözümleyici hiç kullanılabilir hale gelmiyor, uygulama da yalan
+söylediği bilinen bir çözümleyici üzerinden ölçüm yapmış oluyor. dnscrypt-proxy
+çalışmaya başladıktan sonra bu dosyaları arka planda yine de tazeliyor.
 
 Doğrudan upstream arşivlerinden başlamak istersen:
 

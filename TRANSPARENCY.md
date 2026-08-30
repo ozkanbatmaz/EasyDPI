@@ -79,7 +79,17 @@ and comparing hashes:
 | `bin\WinDivert.dll` | bundled in the GoodbyeDPI archive | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | yes |
 | `bin\WinDivert64.sys` | bundled in the GoodbyeDPI archive | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | yes |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | yes |
-| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `C9BDC6DBB1A276C430FA326162AA9DD186B16DB99BFE3BACD85FF8A1E8ADD8CD` | — |
+| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `B0B0DAE6E19A518D2BECE0785AA90893E6A3AE3DF5003B9F43997A37AB18C4D7` | — |
+
+The archive also carries `dns\public-resolvers.md` and `dns\relays.md` with
+their `.minisig` signatures. These are the DNSCrypt project's public server list,
+signed with the project's minisign key, and dnscrypt-proxy verifies that signature
+before using them. They are shipped rather than downloaded on first run for a
+specific reason: fetching them requires resolving a host through the provider's
+plain DNS, which on exactly the networks that need encrypted DNS is the thing
+returning forged answers. Without the list the resolver never becomes usable, and
+the application then measures a network through a resolver known to be lying.
+dnscrypt-proxy still refreshes them in the background once it is running.
 
 Upstream archive checksums, if you want to start from those:
 

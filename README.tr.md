@@ -92,6 +92,14 @@ Sonuç `bin/config.ini` dosyasına yazılır. Ağ değiştirdiğinde tekrar çal
 
 **Varsayılanların kapsamadığı bir ağdaysan:** yerleşik test listesi birkaç bölgede yaygın olarak engellenen servisleri kapsar ama her şeyi kapsayamaz. EasyDPI "engelleme yok" derken ihtiyacın olan bir site hâlâ açılmıyorsa, o siteyi `bin/config.ini` içindeki `probeDomains` satırına ekleyip tekrar çalıştır.
 
+## Kapsam
+
+EasyDPI varsayılan olarak makinenin kurduğu her bağlantıya müdahale eder. Dişli menüsünde alternatifi var: **Yalnız engelli adreslere uygula**. Bu, motoru son ölçümde gerçekten engelli bulunan adreslerle sınırlar. Adresler `bin/blacklist.txt` dosyasına yazılır, ayarın kendisi `bin/config.ini` içinde `scope=targeted` satırıdır.
+
+Dar olan otomatik olarak daha iyi değil, takası bilmekte fayda var. Ölçüm yapıldığında listede olmayan engelli bir şey — sonradan girdiğin bir site, servisin taşındığı yeni bir uç nokta — dokunulmadan bırakılır ve bir sonraki ölçüme kadar engelli kalır. Darlığın kazandırdığı şey ise şu: başka hiçbir şeye dokunulmaz. VPN, oyunlar, bankacılık uygulaması ve hiç engellenmemiş her site, EasyDPI kapalıymış gibi geçer.
+
+Bunu iki servis için istiyor ve tüm bilgisayara uygulanmasını istemiyorsan, aradığın ayar bu.
+
 ## Günlük sekmesi
 
 Uygulamanın yaptığı her şey olurken günlüğe yazılıyor ve çalıştırmalar arasında `easydpi.log` dosyasında saklanıyor; pencereyi bir dahaki açışında geçmiş yerinde duruyor.
@@ -149,7 +157,7 @@ Antivirüs bazen bir adım öteye gidip dosyayı tamamen engelleyebiliyor: "vir�
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.3.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.4.zip -Algorithm SHA256
 ```
 
 ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.

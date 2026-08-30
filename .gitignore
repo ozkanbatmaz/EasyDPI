@@ -1,6 +1,7 @@
 # Created at runtime
 easydpi.log
 bin/config.ini
+bin/blacklist.txt
 
 # Resolver list cache, rewritten by dnscrypt-proxy whenever it refreshes.
 # The pristine copies the release archive is built from live in dns/seed/.

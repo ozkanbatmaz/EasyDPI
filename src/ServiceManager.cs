@@ -331,7 +331,8 @@ namespace EasyDPI
                 Thread.Sleep(1200);
             }
 
-            string binaryPath = "\\\"" + AppPaths.GoodbyeDpiExe + "\\\" " + bypassArguments;
+            string binaryPath = "\\\"" + AppPaths.GoodbyeDpiExe + "\\\" " + bypassArguments +
+                                Settings.BlacklistArgument(true);
 
             ProcessRunner.Sc("create " + BypassService + " binPath= \"" + binaryPath +
                              "\" DisplayName= \"GoodbyeDPI (EasyDPI)\" start= auto");

@@ -499,11 +499,47 @@ namespace EasyDPI
         void OnSettingsClicked(object sender, EventArgs e)
         {
             PopupMenu menu = new PopupMenu();
+            menu.AddItem(ScopeMenuText(), new EventHandler(delegate { ToggleScope(); }));
             menu.AddItem(Strings.Get("menu.showIntro"), new EventHandler(delegate { ShowIntroduction(); }));
             menu.AddItem(Strings.Get("menu.openConfig"), new EventHandler(delegate { OpenConfigFolder(); }));
 
             // Hangs from the right edge of the window, just under the gear
             menu.ShowAlignedRight(this, new Point(WindowWidth - 18, ContentTop + TabBarHeight - 4));
+        }
+
+        static string ScopeMenuText()
+        {
+            return (Settings.TargetedScope ? "✓  " : "     ") + Strings.Get("menu.targetedScope");
+        }
+
+        /// <summary>
+        /// Switches between reshaping everything and reshaping only the addresses the last
+        /// measurement found blocked, and re-applies immediately when protection is on —
+        /// a setting that takes effect at some unspecified later point is a setting people
+        /// cannot tell they have changed.
+        /// </summary>
+        void ToggleScope()
+        {
+            if (working) return;
+
+            Settings.TargetedScope = !Settings.TargetedScope;
+            Settings.Save();
+
+            if (Settings.TargetedScope && Settings.BlacklistCount() == 0)
+            {
+                // Nothing measured yet, so there is no list to narrow to and the engine
+                // would quietly go on reshaping everything.
+                Report(Strings.Get("scope.noList"));
+                return;
+            }
+
+            Report(Strings.Get(Settings.TargetedScope ? "scope.targeted" : "scope.all",
+                               Settings.BlacklistCount()));
+
+            if (!BypassController.IsActive) return;
+
+            SetWorking(true, Strings.Get("button.turningOn"));
+            RunInBackground(delegate { BypassController.TurnOn(Report); });
         }
 
         /// <summary>

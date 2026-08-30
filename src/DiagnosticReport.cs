@@ -106,6 +106,10 @@ namespace EasyDPI
                 catch (Exception error) { Line(text, "  could not be read: " + error.Message); }
             }
             else Line(text, "  no config.ini yet (never tuned on this machine)");
+
+            Line(text, "  scope in effect : " + (Settings.TargetedScope
+                ? "targeted, " + Settings.BlacklistCount() + " host names"
+                : "everything this machine sends"));
             Line(text, "");
 
             Section(text, "Services");

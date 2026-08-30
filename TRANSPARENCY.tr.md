@@ -15,7 +15,7 @@ Son doğrulama: 10 Ağustos 2026, EasyDPI 1.0.0 üzerinde.
 | `dnscrypt-proxy` Windows servisi | `dns\dnscrypt-proxy.exe`'yi gösterecek şekilde kurulur, başlangıç türü Otomatik |
 | Çekirdek sürücüsü | `WinDivert64.sys`, giden paketleri inceleyip yeniden biçimlendirmek için GoodbyeDPI tarafından yüklenir |
 | DNS ayarları | Aktif adaptörün DNS'i `127.0.0.1` ve `::1` yapılır, sorgular yerel şifreli çözümleyiciye gider |
-| Yazılan dosyalar | `bin\config.ini` (ayarların), `easydpi.log` (etkinlik günlüğü; çalıştırmalar arasında saklanır, 1 MB'ta kırpılır), `dns\*.md` (çözümleyici listesi önbelleği) |
+| Yazılan dosyalar | `bin\config.ini` (ayarların), `bin\blacklist.txt` (kapsam daraltılmışsa engelli bulunan adresler), `easydpi.log` (etkinlik günlüğü; çalıştırmalar arasında saklanır, 1 MB'ta kırpılır), `dns\*.md` (çözümleyici listesi önbelleği) |
 
 Korumayı kapatmak bunların hepsini geri alır: iki servis de durdurulur **ve
 devre dışı bırakılır**, DNS DHCP'ye döner — yalnızca bu uygulamanın yerel
@@ -112,7 +112,7 @@ sağlama toplamlarını karşılaştırdım:
 | `bin\WinDivert.dll` | GoodbyeDPI arşivinin içinde | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | evet |
 | `bin\WinDivert64.sys` | GoodbyeDPI arşivinin içinde | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | evet |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | evet |
-| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `D5D5A694C3AC662B5099C9489EF649F264970994EE7B640AE187592317448804` | — |
+| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `BA98C2BF75A306A038A6888DD09A1C73C9F8652C8B9C3F7FE95626EDA410EC0C` | — |
 
 Arşivde ayrıca `dns\public-resolvers.md` ve `dns\relays.md` dosyaları,
 `.minisig` imzalarıyla birlikte geliyor. Bunlar DNSCrypt projesinin açık sunucu

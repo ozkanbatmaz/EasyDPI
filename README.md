@@ -92,6 +92,14 @@ The result is written to `bin/config.ini`. Run it again whenever you change netw
 
 **On a network the defaults do not cover:** the built-in probe list covers commonly blocked services across several regions, but it cannot cover everything. If EasyDPI reports no blocking while a site you need is still unreachable, add that site to `probeDomains` in `bin/config.ini` and run the tuner again.
 
+## Scope
+
+By default EasyDPI reshapes every connection the machine makes. The gear menu offers the alternative: **Apply only to blocked addresses**, which limits the engine to the addresses the last measurement actually found blocked. They are written to `bin/blacklist.txt`, and the setting is `scope=targeted` in `bin/config.ini`.
+
+Narrow is not automatically better, and the trade is worth understanding. Anything blocked that was not on the list when it was measured — a site visited later, an endpoint a service moves to — is left alone and stays blocked until the next measurement. What narrow buys is that nothing else is touched: a VPN, a game, a banking app and every site that was never blocked all travel exactly as they would with EasyDPI switched off.
+
+If you want this for two services and would rather it did not apply to the whole computer, that is the setting.
+
 ## The log tab
 
 Everything the application does is written to the log as it happens, and kept in `easydpi.log` between runs so it is still there the next time you open the window.
@@ -149,7 +157,7 @@ Antivirus software occasionally goes further and blocks the file outright, with 
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.2.3.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.2.4.zip -Algorithm SHA256
 ```
 
 and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.

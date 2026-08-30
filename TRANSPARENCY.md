@@ -14,7 +14,7 @@ Last verified: 10 August 2026, against EasyDPI 1.0.0.
 | Windows service `dnscrypt-proxy` | Created pointing at `dns\dnscrypt-proxy.exe`, start type Automatic |
 | Kernel driver | `WinDivert64.sys` is loaded by GoodbyeDPI to inspect and reshape outgoing packets |
 | DNS settings | The active adapter's DNS is set to `127.0.0.1` and `::1`, so lookups go to the local encrypted resolver |
-| Files written | `bin\config.ini` (your settings), `easydpi.log` (the activity log, kept between runs and trimmed at 1 MB), `dns\*.md` (resolver list cache) |
+| Files written | `bin\config.ini` (your settings), `bin\blacklist.txt` (the addresses found blocked, when the scope is targeted), `easydpi.log` (the activity log, kept between runs and trimmed at 1 MB), `dns\*.md` (resolver list cache) |
 
 Turning protection off reverses all of it: both services are stopped **and
 disabled**, and DNS is handed back to DHCP — on the adapters this application
@@ -111,7 +111,7 @@ and comparing hashes:
 | `bin\WinDivert.dll` | bundled in the GoodbyeDPI archive | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | yes |
 | `bin\WinDivert64.sys` | bundled in the GoodbyeDPI archive | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | yes |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | yes |
-| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `D5D5A694C3AC662B5099C9489EF649F264970994EE7B640AE187592317448804` | — |
+| `EasyDPI.exe` | built from [`src/`](src/) in this repository | `BA98C2BF75A306A038A6888DD09A1C73C9F8652C8B9C3F7FE95626EDA410EC0C` | — |
 
 The archive also carries `dns\public-resolvers.md` and `dns\relays.md` with
 their `.minisig` signatures. These are the DNSCrypt project's public server list,

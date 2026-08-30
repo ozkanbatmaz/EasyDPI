@@ -216,6 +216,11 @@ namespace EasyDPI
 
             en["menu.showIntro"] = "Show the introduction again";
             en["menu.openConfig"] = "Open the configuration folder";
+            en["menu.targetedScope"] = "Apply only to blocked addresses";
+            en["scope.targeted"] = "Scope: only the {0} addresses found blocked. Everything else travels untouched.";
+            en["scope.all"] = "Scope: every connection this machine makes.";
+            en["scope.noList"] = "Nothing has been measured yet, so there is no list to narrow to. Find the best settings first.";
+            en["tune.targetedScope"] = "   Scope is targeted: the engine will be limited to these {0} addresses.";
             en["pill.on"] = "You are protected";
             en["pill.off"] = "Not protected";
             en["details.dnsShort"] = "DNS";
@@ -371,6 +376,11 @@ namespace EasyDPI
 
             tr["menu.showIntro"] = "Tanıtımı tekrar göster";
             tr["menu.openConfig"] = "Yapılandırma klasörünü aç";
+            tr["menu.targetedScope"] = "Yalnız engelli adreslere uygula";
+            tr["scope.targeted"] = "Kapsam: yalnız engelli bulunan {0} adres. Diğer her şey el değmeden geçiyor.";
+            tr["scope.all"] = "Kapsam: bu makinenin kurduğu her bağlantı.";
+            tr["scope.noList"] = "Henüz ölçüm yapılmadı, daraltılacak bir liste yok. Önce en iyi ayarları bul.";
+            tr["tune.targetedScope"] = "   Kapsam daraltılmış: motor yalnız bu {0} adresle sınırlı olacak.";
             tr["pill.on"] = "Korunuyorsunuz";
             tr["pill.off"] = "Koruma yok";
             tr["details.dnsShort"] = "DNS";
@@ -526,6 +536,11 @@ namespace EasyDPI
 
             ru["menu.showIntro"] = "Показать введение снова";
             ru["menu.openConfig"] = "Открыть папку конфигурации";
+            ru["menu.targetedScope"] = "Применять только к заблокированным адресам";
+            ru["scope.targeted"] = "Область: только {0} заблокированных адресов. Всё остальное идёт нетронутым.";
+            ru["scope.all"] = "Область: каждое соединение этой машины.";
+            ru["scope.noList"] = "Замеров ещё не было, сужать не к чему. Сначала запустите подбор настроек.";
+            ru["tune.targetedScope"] = "   Область сужена: движок ограничен этими {0} адресами.";
             ru["pill.on"] = "Вы под защитой";
             ru["pill.off"] = "Защиты нет";
             ru["details.dnsShort"] = "DNS";

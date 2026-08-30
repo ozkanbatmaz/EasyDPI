@@ -324,7 +324,10 @@ namespace EasyDPI
             Process engine = null;
             try
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo(AppPaths.GoodbyeDpiExe, candidate);
+                // Measured with the same scope it will run with, so the numbers describe
+                // the configuration the user ends up with rather than a different one.
+                ProcessStartInfo startInfo = new ProcessStartInfo(AppPaths.GoodbyeDpiExe,
+                    candidate + Settings.BlacklistArgument(false));
                 startInfo.WorkingDirectory = AppPaths.BinFolder;
                 startInfo.UseShellExecute = false;
                 startInfo.CreateNoWindow = true;
@@ -539,6 +542,15 @@ namespace EasyDPI
                        (closed.Count == 0 ? Strings.Get("tune.allOpen")
                                           : Strings.Get("tune.closedList", string.Join(", ", closed.ToArray()))));
             }
+
+            // Written whether or not targeted scope is on: switching it on later should not
+            // require running the whole measurement again just to produce this file.
+            List<string> blockedHosts = new List<string>();
+            foreach (ProbeHost probe in blocked) blockedHosts.Add(probe.Host);
+            Settings.SaveBlacklist(blockedHosts);
+
+            if (Settings.TargetedScope)
+                report(Strings.Get("tune.targetedScope", blockedHosts.Count));
 
             // A control that is down before anything is switched on cannot judge damage
             // later, so it is dropped rather than counted against every candidate.

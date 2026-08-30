@@ -55,6 +55,9 @@ namespace EasyDPI
         public static string DnscryptConfig { get { return Path.Combine(DnsFolder, "dnscrypt-proxy.toml"); } }
 
         public static string ConfigFile { get { return Path.Combine(BinFolder, "config.ini"); } }
+
+        /// <summary>Host names the bypass is limited to when targeted scope is on.</summary>
+        public static string BlacklistFile { get { return Path.Combine(BinFolder, "blacklist.txt"); } }
         public static string LogFile { get { return Path.Combine(Root, "easydpi.log"); } }
     }
 
@@ -69,6 +72,20 @@ namespace EasyDPI
 
         /// <summary>Whether this network needs encrypted DNS to resolve names correctly.</summary>
         public static bool UseEncryptedDns = true;
+
+        /// <summary>
+        /// Whether to reshape only the traffic going to addresses the tuner found blocked,
+        /// rather than everything leaving the machine.
+        ///
+        /// Narrow is not automatically better. Anything blocked that was not on the list
+        /// when it was measured — a site visited later, an endpoint a service moves to —
+        /// is left alone and stays blocked until the next run. What narrow buys is that
+        /// nothing else on the machine is touched: a VPN, a game, a banking app and every
+        /// site that was never blocked all travel exactly as they would with the
+        /// application switched off. For somebody who wants this for two services and
+        /// resents it applying to the whole computer, that is the entire point.
+        /// </summary>
+        public static bool TargetedScope = false;
 
         /// <summary>UI language: a two-letter code, or "auto" to follow the operating system.</summary>
         public static string Language = "auto";
@@ -91,6 +108,57 @@ namespace EasyDPI
         /// once per release rather than at every launch.
         /// </summary>
         public static string UpdateNotifiedVersion = "";
+
+        /// <summary>
+        /// The extra argument that limits the engine to the measured host list, or an
+        /// empty string when the scope is everything.
+        ///
+        /// Two quoting forms, because the same command line is used in two places that
+        /// parse it differently: a service's registered path needs its inner quotes
+        /// escaped, a directly started process does not. Getting this wrong produces a
+        /// service that silently ignores the list, which looks exactly like the feature
+        /// not working.
+        /// </summary>
+        public static string BlacklistArgument(bool escapedForServicePath)
+        {
+            if (!TargetedScope) return "";
+            if (!File.Exists(AppPaths.BlacklistFile)) return "";
+
+            string quote = escapedForServicePath ? "\\\"" : "\"";
+            return " --blacklist " + quote + AppPaths.BlacklistFile + quote;
+        }
+
+        /// <summary>Host names written for the engine, one per line.</summary>
+        public static void SaveBlacklist(List<string> hosts)
+        {
+            try
+            {
+                string folder = Path.GetDirectoryName(AppPaths.BlacklistFile);
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                StringBuilder text = new StringBuilder();
+                foreach (string host in hosts) text.AppendLine(host);
+
+                File.WriteAllText(AppPaths.BlacklistFile, text.ToString(), new UTF8Encoding(false));
+            }
+            catch { }
+        }
+
+        /// <summary>How many host names the engine is currently limited to.</summary>
+        public static int BlacklistCount()
+        {
+            try
+            {
+                if (!File.Exists(AppPaths.BlacklistFile)) return 0;
+
+                int count = 0;
+                foreach (string line in File.ReadAllLines(AppPaths.BlacklistFile))
+                    if (line.Trim().Length > 0) count++;
+
+                return count;
+            }
+            catch { return 0; }
+        }
 
         /// <summary>True when no configuration exists yet, i.e. this is the first launch.</summary>
         public static bool IsFirstRun { get { return !File.Exists(AppPaths.ConfigFile); } }
@@ -118,6 +186,7 @@ namespace EasyDPI
                     else if (key == "probedomains") CustomProbeDomains = SplitDomains(value);
                     else if (key == "updatecheck") CheckForUpdates = IsTruthy(value);
                     else if (key == "updatenotified") UpdateNotifiedVersion = value;
+                    else if (key == "scope") TargetedScope = value.Trim().ToLowerInvariant() == "targeted";
                 }
             }
             catch { }
@@ -144,6 +213,12 @@ namespace EasyDPI
                 text.AppendLine("# Leave empty to use the built-in list. Add the sites you actually need,");
                 text.AppendLine("# for example: probeDomains=example.com, another.org");
                 text.AppendLine("probeDomains=" + string.Join(", ", CustomProbeDomains.ToArray()));
+                text.AppendLine();
+                text.AppendLine("# all      = reshape every connection this machine makes.");
+                text.AppendLine("# targeted = reshape only connections to the addresses the last measurement");
+                text.AppendLine("#            found blocked, listed in blacklist.txt. Everything else on the");
+                text.AppendLine("#            machine travels untouched, including a VPN.");
+                text.AppendLine("scope=" + (TargetedScope ? "targeted" : "all"));
                 text.AppendLine();
                 text.AppendLine("# 1 = check GitHub for a newer release when the window opens, 0 = never.");
                 text.AppendLine("# With this off, EasyDPI makes no network calls of its own.");

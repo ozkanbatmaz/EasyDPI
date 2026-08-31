@@ -215,8 +215,7 @@ namespace EasyDPI
 
         void OnWindowShown(object sender, EventArgs e)
         {
-            if (!File.Exists(AppPaths.GoodbyeDpiExe)) Report(Strings.Get("warn.missingBypassBinary"));
-            if (!File.Exists(AppPaths.DnscryptExe)) Report(Strings.Get("warn.missingDnsBinary"));
+            if (!AppPaths.IsComplete) ReportIncompleteInstallation();
 
             UpdateDisplay();
 
@@ -309,16 +308,49 @@ namespace EasyDPI
             Application.Exit();
         }
 
+        /// <summary>
+        /// Says what is wrong and what to do about it, once, and then stops the buttons
+        /// from producing the same failure over and over.
+        ///
+        /// The previous version logged that a file was missing and left everything
+        /// enabled, so a person who had started the application from inside the zip could
+        /// press the button ten times, run the measurement twice, and collect a screenful
+        /// of the same error without ever being told the one thing that would fix it.
+        /// </summary>
+        void ReportIncompleteInstallation()
+        {
+            Report(Strings.Get("incomplete.title"));
+
+            if (AppPaths.LooksLikeArchivePreview) Report(Strings.Get("incomplete.fromArchive"));
+            else Report(Strings.Get("incomplete.filesMissing"));
+
+            Report(Strings.Get("incomplete.where", AppPaths.Root.TrimEnd(Path.DirectorySeparatorChar)));
+
+            tabBar.SelectedIndex = 1;
+        }
+
         void OnRefreshTick(object sender, EventArgs e) { UpdateDisplay(); }
 
         void UpdateDisplay()
         {
             bool active = BypassController.IsActive;
+            bool complete = AppPaths.IsComplete;
 
             statusPane.Protected = active;
             statusPane.PillText = Strings.Get(active ? "pill.on" : "pill.off");
-            statusPane.Title = Strings.Get(active ? "status.on" : "status.off");
-            statusPane.Subtitle = Strings.Get(active ? "subtitle.on" : "subtitle.off");
+
+            // An installation missing its own files cannot be turned on, and saying
+            // "not protected" invites somebody to keep pressing the button that cannot
+            // work. The headline says what is actually wrong.
+            statusPane.Title = complete
+                ? Strings.Get(active ? "status.on" : "status.off")
+                : Strings.Get("incomplete.status");
+
+            statusPane.Subtitle = complete
+                ? Strings.Get(active ? "subtitle.on" : "subtitle.off")
+                : Strings.Get(AppPaths.LooksLikeArchivePreview
+                    ? "incomplete.statusFromArchive" : "incomplete.statusMissing");
+
             statusPane.Invalidate();
 
             if (!working)
@@ -372,8 +404,12 @@ namespace EasyDPI
             }
 
             working = busy;
-            toggleButton.Enabled = !busy;
-            autoTuneLink.Enabled = !busy;
+            // Turning off needs none of the missing files — it stops services and hands
+            // DNS back — so an incomplete copy must still be able to do it. Otherwise
+            // somebody whose machine is protected by an earlier copy has a window that
+            // refuses to switch it off.
+            toggleButton.Enabled = !busy && (AppPaths.IsComplete || BypassController.IsActive);
+            autoTuneLink.Enabled = !busy && AppPaths.IsComplete;
             uninstallButton.Enabled = !busy;
             reportButton.Enabled = !busy;
 
@@ -417,6 +453,11 @@ namespace EasyDPI
             if (working) return;
 
             bool turningOn = !BypassController.IsActive;
+
+            // Switching off is always allowed; switching on without the engine present
+            // would only produce the same error again.
+            if (turningOn && !AppPaths.IsComplete) { ReportIncompleteInstallation(); return; }
+
             SetWorking(true, Strings.Get(turningOn ? "button.turningOn" : "button.turningOff"));
 
             RunInBackground(delegate
@@ -436,6 +477,8 @@ namespace EasyDPI
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (answer != DialogResult.Yes) return;
+            if (!AppPaths.IsComplete) { ReportIncompleteInstallation(); return; }
+
             StartAutoTune();
         }
 

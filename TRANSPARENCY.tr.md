@@ -112,7 +112,7 @@ sağlama toplamlarını karşılaştırdım:
 | `bin\WinDivert.dll` | GoodbyeDPI arşivinin içinde | `6110BFA44667405179C3E15E12AF1B62037E447ED59B054B19042032995E6C7E` | evet |
 | `bin\WinDivert64.sys` | GoodbyeDPI arşivinin içinde | `E69B5BA3F0CD6CFB2983E442636E7F0B342B61B15264B0328317D4559C82CF50` | evet |
 | `dns\dnscrypt-proxy.exe` | [dnscrypt-proxy 2.1.18](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18) | `D847F834AEF02F8705A649DC1060F520CDB7931D7361035728770DCE2C16EEB6` | evet |
-| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `7C229F762E4C4A20B83CE83C858BE00E2304F6FB2C7B69857D2E577C346E95E9` | — |
+| `EasyDPI.exe` | bu depodaki [`src/`](src/) klasöründen derlendi | `2473C851C3C4CD4D7995DCE102CFA2CBFC42D4645116AE4A86FB95305A6BAA46` | — |
 
 Arşivde ayrıca `dns\public-resolvers.md` ve `dns\relays.md` dosyaları,
 `.minisig` imzalarıyla birlikte geliyor. Bunlar DNSCrypt projesinin açık sunucu

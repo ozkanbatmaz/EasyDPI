@@ -59,6 +59,43 @@ namespace EasyDPI
         /// <summary>Host names the bypass is limited to when targeted scope is on.</summary>
         public static string BlacklistFile { get { return Path.Combine(BinFolder, "blacklist.txt"); } }
         public static string LogFile { get { return Path.Combine(Root, "easydpi.log"); } }
+
+        /// <summary>
+        /// Whether the files EasyDPI needs are actually next to it.
+        ///
+        /// They are not, more often than anybody would guess, and always for the same
+        /// reason: the executable was started from inside the downloaded archive instead
+        /// of from an extracted folder. Windows obliges by unpacking that one file to a
+        /// temporary directory and running it there, alone, without bin or dns — so the
+        /// application starts, looks entirely normal, and can do nothing at all.
+        /// </summary>
+        public static bool IsComplete
+        {
+            get { return File.Exists(GoodbyeDpiExe) && File.Exists(DnscryptExe); }
+        }
+
+        /// <summary>
+        /// Whether this copy is running out of the place an archive tool unpacks to.
+        /// Explorer uses a Temp folder named after the archive; WinRAR and 7-Zip use
+        /// their own conventions. Recognising it turns "a file is missing" into the
+        /// sentence somebody can act on: extract the archive first.
+        /// </summary>
+        public static bool LooksLikeArchivePreview
+        {
+            get
+            {
+                try
+                {
+                    string root = Root.ToLowerInvariant();
+                    bool temporary = root.Contains("\\temp\\") || root.Contains("\\tmp\\");
+
+                    return temporary && (root.Contains(".zip") || root.Contains(".rar") ||
+                                         root.Contains(".7z") || root.Contains("rar$") ||
+                                         root.Contains("7z"));
+                }
+                catch { return false; }
+            }
+        }
     }
 
     /// <summary>

@@ -39,6 +39,12 @@ Birçok ülkede operatörler siteleri **iki ayrı katmanda** engeller. Sadece bi
 
 EasyDPI arka planda çalışan iki servis kurar; pencereyi kapatsan da bilgisayarı yeniden başlatsan da çalışmaya devam eder. Kapattığında iki servisi de durdurur, DNS ayarlarını eski haline döndürür ve tekrar başlamalarını engeller — makine bıraktığın gibi kalır.
 
+## Önce arşivi çıkar
+
+EasyDPI tek bir dosya değil. `EasyDPI.exe`, yanındaki `bin` ve `dns` klasörlerinde duran iki programı çalıştırıyor; yani arşivden çıkan klasörün bir arada kalması gerekiyor.
+
+İndirdiğin zip'in içinden çift tıklamak işe yaramaz — ve insanların en sık takıldığı yer burası. Windows, yalnızca tıkladığın dosyayı geçici bir klasöre açıp orada tek başına çalıştırıyor; `bin` ve `dns` yanında olmuyor. EasyDPI bunu fark edip söylüyor ama arşivi gerçek bir klasöre çıkarıp oradan çalıştırmadan hiçbir şey yapamaz.
+
 ## Otomatik ayar
 
 Bu projenin asıl varlık sebebi bu kısım.
@@ -163,7 +169,7 @@ Antivirüs bazen bir adım öteye gidip dosyayı tamamen engelleyebiliyor: "vir�
 Güvenmek yerine doğrulamak istersen, açmadan önce arşivin sağlama toplamına bak:
 
 ```powershell
-Get-FileHash EasyDPI-1.3.2.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.3.3.zip -Algorithm SHA256
 ```
 
 ve çıkan değeri [indirdiğin sürümün](https://github.com/ozkanbatmaz/EasyDPI/releases/latest) notlarında yayınlanan SHA256 ile karşılaştır. Tutuyorsa dosya, buraya yüklenenin bayt bayt aynısıdır.

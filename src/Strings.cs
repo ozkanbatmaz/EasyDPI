@@ -127,6 +127,13 @@ namespace EasyDPI
 
             en["warn.missingBypassBinary"] = "Warning: bin\\goodbyedpi.exe is missing.";
             en["warn.missingDnsBinary"] = "Warning: dns\\dnscrypt-proxy.exe is missing.";
+            en["incomplete.title"] = "This copy is missing the programs it runs.";
+            en["incomplete.fromArchive"] = "   It was started from inside the downloaded archive. Windows unpacks only the one file you double-click and runs it on its own, without the bin and dns folders. Extract the whole archive to a folder first, then run EasyDPI.exe from there.";
+            en["incomplete.filesMissing"] = "   The bin and dns folders are not next to EasyDPI.exe. Keep the folder from the archive together, or download it again.";
+            en["incomplete.where"] = "   Running from: {0}";
+            en["incomplete.status"] = "Not ready";
+            en["incomplete.statusFromArchive"] = "Extract the archive first";
+            en["incomplete.statusMissing"] = "Files are missing next to EasyDPI.exe";
 
             en["log.turningOn"] = "Turning on...";
             en["log.errorMissingBinary"] = "ERROR: bin\\goodbyedpi.exe not found.";
@@ -321,6 +328,13 @@ namespace EasyDPI
 
             tr["warn.missingBypassBinary"] = "Uyarı: bin\\goodbyedpi.exe bulunamadı.";
             tr["warn.missingDnsBinary"] = "Uyarı: dns\\dnscrypt-proxy.exe bulunamadı.";
+            tr["incomplete.title"] = "Bu kopyanın yanında çalıştıracağı programlar yok.";
+            tr["incomplete.fromArchive"] = "   İndirdiğin arşivin içinden çalıştırılmış. Windows, çift tıkladığın tek dosyayı geçici bir yere açıp orada tek başına çalıştırıyor; bin ve dns klasörleri yanında olmuyor. Önce arşivin tamamını bir klasöre çıkar, sonra EasyDPI.exe'yi oradan çalıştır.";
+            tr["incomplete.filesMissing"] = "   bin ve dns klasörleri EasyDPI.exe'nin yanında değil. Arşivden çıkan klasörü bir arada tut ya da yeniden indir.";
+            tr["incomplete.where"] = "   Çalıştığı yer: {0}";
+            tr["incomplete.status"] = "Hazır değil";
+            tr["incomplete.statusFromArchive"] = "Önce arşivi çıkar";
+            tr["incomplete.statusMissing"] = "EasyDPI.exe yanındaki dosyalar eksik";
 
             tr["log.turningOn"] = "Açılıyor...";
             tr["log.errorMissingBinary"] = "HATA: bin\\goodbyedpi.exe bulunamadı.";
@@ -515,6 +529,13 @@ namespace EasyDPI
 
             ru["warn.missingBypassBinary"] = "Внимание: файл bin\\goodbyedpi.exe отсутствует.";
             ru["warn.missingDnsBinary"] = "Внимание: файл dns\\dnscrypt-proxy.exe отсутствует.";
+            ru["incomplete.title"] = "Рядом с этой копией нет программ, которые она запускает.";
+            ru["incomplete.fromArchive"] = "   Запущено прямо из скачанного архива. Windows распаковывает только тот файл, по которому вы щёлкнули, и запускает его отдельно — без папок bin и dns. Сначала распакуйте весь архив в папку и запустите EasyDPI.exe оттуда.";
+            ru["incomplete.filesMissing"] = "   Папок bin и dns нет рядом с EasyDPI.exe. Держите папку из архива целиком или скачайте заново.";
+            ru["incomplete.where"] = "   Запущено из: {0}";
+            ru["incomplete.status"] = "Не готово";
+            ru["incomplete.statusFromArchive"] = "Сначала распакуйте архив";
+            ru["incomplete.statusMissing"] = "Рядом с EasyDPI.exe не хватает файлов";
 
             ru["log.turningOn"] = "Включение...";
             ru["log.errorMissingBinary"] = "ОШИБКА: bin\\goodbyedpi.exe не найден.";

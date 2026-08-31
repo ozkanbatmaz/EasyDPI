@@ -39,6 +39,12 @@ Both layers apply system-wide, so browsers **and** desktop applications are cove
 
 EasyDPI installs two background services and keeps working after you close the window or restart the machine. Turning it off stops both services, restores your original DNS settings, and prevents them from starting again — the machine is left exactly as it was.
 
+## Extract the archive first
+
+EasyDPI is not a single file. `EasyDPI.exe` runs two other programs that sit next to it in `bin` and `dns`, so the folder from the archive has to stay together.
+
+Double-clicking the executable from inside the downloaded zip does not work, and it is the most common way people get stuck. Windows unpacks only the file you clicked into a temporary folder and runs it there on its own, without `bin` and `dns`. EasyDPI notices and says so, but it cannot do anything until you extract the archive to a real folder and run it from there.
+
 ## Automatic configuration
 
 This is the part that matters, and the reason this project exists.
@@ -163,7 +169,7 @@ Antivirus software occasionally goes further and blocks the file outright, with 
 If you would rather verify the download than trust it, check the archive before extracting:
 
 ```powershell
-Get-FileHash EasyDPI-1.3.2.zip -Algorithm SHA256
+Get-FileHash EasyDPI-1.3.3.zip -Algorithm SHA256
 ```
 
 and compare it with the SHA256 published in the notes of the [release you downloaded](https://github.com/ozkanbatmaz/EasyDPI/releases/latest). If it matches, the file is byte for byte what was uploaded here.

@@ -107,7 +107,7 @@ namespace EasyDPI
             }
             else Line(text, "  no config.ini yet (never tuned on this machine)");
 
-            Line(text, "  scope in effect : " + (Settings.TargetedScope
+            Line(text, "  scope in effect : " + (Settings.TargetedScope || Settings.AdvancedMode
                 ? "targeted, " + Settings.BlacklistCount() + " host names"
                 : "everything this machine sends"));
             Line(text, "");

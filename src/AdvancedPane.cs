@@ -165,6 +165,7 @@ namespace EasyDPI
 
             customTargets.Text = string.Join(", ", Settings.CustomTargets.ToArray());
             services.Blocked = Settings.BlockedServices;
+            advancedSelected = Settings.AdvancedMode;
 
             ApplyLanguage();
             UpdateModeButtons();
@@ -182,15 +183,44 @@ namespace EasyDPI
             customCard.Invalidate();
         }
 
+        /// <summary>
+        /// Which of the two mode buttons is lit. Kept apart from the saved setting on
+        /// purpose: pressing "choose myself" only opens the list, and nothing changes
+        /// until Apply. Writing it straight into Settings would let a half-made choice
+        /// leak into the next turn-on, with a stale list.
+        /// </summary>
+        bool advancedSelected;
+
         void SetMode(bool advanced)
         {
-            Settings.AdvancedMode = advanced;
+            advancedSelected = advanced;
             UpdateModeButtons();
+
+            if (advanced) return;
+
+            // Automatic has no Apply button, so pressing it is the decision. Until now
+            // this only recoloured two buttons: the setting stayed "advanced" on disk,
+            // the service kept its --blacklist, and the person saw a tab saying "every
+            // connection" while the engine still covered seventy addresses.
+            //
+            // The older scope switch is cleared as well, because the hint under this
+            // button promises every connection, and a leftover scope=targeted in the
+            // file would quietly keep the list in play.
+            bool changed = Settings.AdvancedMode || Settings.TargetedScope;
+
+            Settings.AdvancedMode = false;
+            Settings.TargetedScope = false;
+            Settings.Save();
+
+            if (!changed) return;
+
+            if (Report != null) Report(Strings.Get("advanced.automaticApplied"));
+            if (Applied != null) Applied(this, EventArgs.Empty);
         }
 
         void UpdateModeButtons()
         {
-            bool advanced = Settings.AdvancedMode;
+            bool advanced = advancedSelected;
 
             automaticButton.Appearance = advanced ? IconButton.Style.Outline : IconButton.Style.Filled;
             advancedButton.Appearance = advanced ? IconButton.Style.Filled : IconButton.Style.Outline;
@@ -229,6 +259,7 @@ namespace EasyDPI
                 return;
             }
 
+            Settings.AdvancedMode = true;
             int count = Settings.SaveAdvancedBlacklist();
             Settings.Save();
 
